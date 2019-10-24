@@ -1,5 +1,7 @@
 # required python packages
 gmusicapi==12.1.1
+lxml==4.4.1
+pyyaml==5.1.2
 
 # pick one of these for spotify
 # https://github.com/omarryhan/pyfy#quick-start
@@ -9,13 +11,13 @@ gmusicapi==12.1.1
 
 # gcloud functions Python installed versions
 # see https://cloud.google.com/functions/docs/writing/specifying-dependencies-python#pre-installed_packages
-click==6.7
-Flask==1.0.2
-itsdangerous==0.24
-Jinja2==2.10
-MarkupSafe==1.0
-pip==18.0
-requests==2.21.0
-setuptools==40.2.0
-Werkzeug==0.14.1
-wheel==0.31.1
+#click==6.7
+#Flask==1.0.2
+#itsdangerous==0.24
+#Jinja2==2.10
+#MarkupSafe==1.0
+#pip==18.0
+#requests==2.21.0
+#setuptools==40.2.0
+#Werkzeug==0.14.1
+#wheel==0.31.1
