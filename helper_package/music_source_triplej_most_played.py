@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
@@ -8,6 +9,11 @@ from helper_package.data_helper import DataHelper
 class MusicSourceTripleJMostPlayed:
     # https://music.abcradio.net.au/api/v1/recordings/plays.json?order=desc&limit=50&service=triplej&from=2019-10-12T13:00:00Z&to=2019-10-19T13:00:00Z
     url = 'https://music.abcradio.net.au/api/v1/recordings/plays.json?{qs}'
+
+    gmusic_playlist_id = os.getenv('MUSIC_SOURCE_TRIPLEJ_MOST_PLAYED_PLAYLIST_ID')
+    playlist_name = 'Triple J Most Played'
+    group_id = 'triplej_most_played'
+
     url_date_format = '%Y-%m-%d'
     data_helper = DataHelper()
 
@@ -16,8 +22,6 @@ class MusicSourceTripleJMostPlayed:
 
     def run(self):
         current_time = datetime.today()
-
-        self._logger.info(f'Loading Triple J most played at {current_time}')
 
         url = self.build_url(date_from=current_time - timedelta(days=7), date_to=current_time)
         data = self.data_helper.download_json(url)
@@ -38,7 +42,9 @@ class MusicSourceTripleJMostPlayed:
                     raise Exception(f"Unrecognised artist {raw_artist['type']}, {artist}, {raw_artist['name']}.")
 
             item = {
-                'source': 'triplej_most_played',
+                'source': self.group_id,
+                'source_playlist_title': self.playlist_name,
+                'source_playlist_id': self.gmusic_playlist_id,
                 'retrieved_at': current_time,
                 'order': index + 1,
                 'title': title,
@@ -47,10 +53,11 @@ class MusicSourceTripleJMostPlayed:
                 'featuring': featuring.strip(', ')
             }
             title, featuring = self.data_helper.normalise(item['title'], item['artist'])
-            item['title'] = title
+            item['title_compare'] = title
             item['featuring'] = featuring
             result.append(item)
 
+        self._logger.info('Completed document')
         return result
 
     def build_url(self, date_from, date_to, order='desc', limit='50', service='triplej'):

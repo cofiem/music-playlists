@@ -3,7 +3,7 @@ import logging
 from os import makedirs
 from os.path import abspath, join, dirname, isfile
 import string
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, Tuple, List, Any
 import yaml
 
 import requests
@@ -54,10 +54,8 @@ class DataHelper:
             return content_raw.decode('utf-8')
 
         # get from website
+        self._logger.info(f'Downloading text from {url}')
         page = requests.get(url)
-
-        self._logger.debug(f'Downloading text from {url}')
-
         if page.is_redirect or page.is_permanent_redirect or page.status_code != 200:
             content = None
         else:
@@ -76,10 +74,8 @@ class DataHelper:
             return json.loads(content_raw.decode('utf-8'))
 
         # get from website
+        self._logger.info(f'Downloading json from {url}')
         page = requests.get(url)
-
-        self._logger.debug(f'Downloading json from {url}')
-
         if page.is_redirect or page.is_permanent_redirect or page.status_code != 200:
             content = None
         else:
@@ -105,7 +101,7 @@ class DataHelper:
         item_id = self.cache_item_id(url)
         file_path = join(self.local_cache_dir, item_id + '.txt')
 
-        self._logger.debug(f'Saving cache for {url}')
+        self._logger.info(f'Saving cache for {url}')
 
         with open(file_path, 'wb') as f:
             f.write(content)
@@ -121,7 +117,76 @@ class DataHelper:
         if not isfile(file_path):
             return None
 
-        self._logger.debug(f'Loading cache for {url}')
+        self._logger.info(f'Loading cache for {url}')
 
         with open(file_path, 'rb') as f:
             return f.read()
+
+    # ---------- Select song and build playlist data  -----------------------------
+
+    def select_song(self, song_hits: List[Dict], query_title: str, query_artist: str):
+        count = len(song_hits)
+        self._logger.debug(f'Selecting song from {count} options')
+
+        # if there are songs, then no match
+        if count == 0:
+            self._logger.warning(f'Did not select a song for "{query_title} - {query_artist}"')
+            return {}
+
+        # if there are results, then the query title and artist must appear in the result
+        for song in song_hits:
+            if self._is_match(query_title, query_artist, song['track']['title'], song['track']['artist']):
+                self._logger.info(f'Selected song "{song["track"]["title"]} - {song["track"]["artist"]}"')
+                return song['track']
+
+        # if there are no matches, then no match
+        self._logger.warning(f'Did not select a song for "{query_title} - {query_artist}"')
+        return {}
+
+    def build_result(self, selected_song: Optional[Dict], query_song: Dict):
+        selected_title = selected_song.get('title')
+        selected_artist = selected_song.get('artist')
+
+        return {
+            'track_id': selected_song.get('storeId') or selected_song.get('trackId') or
+                        selected_song.get('id') or selected_song.get('nid'),
+            'title': selected_song.get('title'),
+            'artist': selected_song.get('artist'),
+            'match': self._is_match(query_song['title_compare'], query_song['artist'], selected_title, selected_artist)
+        }
+
+    def build_playlist(self, songs_found: Dict[str, Any], songs_missing: Dict[str, Any]) -> Dict[str, Any]:
+        found_count = len(songs_found)
+        missing_count = len(songs_missing)
+
+        descr_prefix = f'Playlist includes {found_count} found songs, ' \
+                       f'with {missing_count} missing songs. These songs are missing: '
+        descr_missing = ', '.join([f'({index}) "{song["title"]} - {song["artist"]}"'
+                                   for index, song in songs_missing.items()])
+        description = f'{descr_prefix} {descr_missing}.'
+
+        gmusic_song_ids = [None] * (len(songs_missing) + len(songs_found))
+        for index, song in songs_found.items():
+            gmusic_song_ids[int(index)] = song['gmusic']['track_id']
+
+        return {
+            'description': description,
+            'gmusic_song_ids': [i for i in gmusic_song_ids if i],
+        }
+
+    def _is_match(self, query_title: str, query_artist: str, result_title: str, result_artist: str):
+        if not query_title or not result_title or not query_artist or not result_artist:
+            return False
+
+        q_title = self.normalise(query_title, query_artist)
+        q_artist = query_artist.lower().strip()
+        r_title = self.normalise(result_title, result_artist)
+        r_artist = result_artist.lower().strip()
+
+        if q_title in r_title and q_artist == r_artist:
+            return True
+
+        if q_artist in r_artist and q_title == r_title:
+            return True
+
+        return False
