@@ -15,7 +15,7 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum main.py }}
+            - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
             - v1-dependencies-{{ checksum "requirements.txt" }}
             - v1-dependencies-
 
@@ -31,4 +31,4 @@ jobs:
           paths:
             - ./venv
             - ./cache
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum main.py }}
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
