@@ -28,7 +28,9 @@ jobs:
 
       - run:
           name: run main
-          command: python3 ./main.py
+          command: |
+            . venv/bin/activate
+            python3 ./main.py
 
       - save_cache:
           paths:

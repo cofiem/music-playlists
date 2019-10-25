@@ -46,6 +46,17 @@ class Processing:
 
         # login to streaming service
         self._logger.info('Logging in...')
+
+        # write gmusicapi login details
+        gmusicapi_creds_data = os.getenv('GMUSIC_COFIG')
+        if gmusicapi_creds_data:
+            gmusicapi_creds_dir = '~/.local/share/gmusicapi'
+            gmusicapi_creds_file = 'mobileclient.cred'
+
+            os.makedirs(gmusicapi_creds_dir)
+            with open(os.path.join(gmusicapi_creds_dir, gmusicapi_creds_file), 'wt') as creds_f:
+                creds_f.write(gmusicapi_creds_data)
+
         self._gmusic.login(self.device_id)
 
         # build the song select structure
