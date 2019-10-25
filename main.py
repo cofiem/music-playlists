@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, tzinfo
+from datetime import datetime
 from logging.config import dictConfig
 from os.path import abspath, join, dirname
 from typing import List
