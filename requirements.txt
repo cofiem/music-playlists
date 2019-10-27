@@ -3,7 +3,7 @@ gmusicapi==12.1.1
 lxml==4.4.1
 pyyaml==5.1.2
 requests==2.21.0
-pytz==2019.3
+pytz
 
 # pick one of these for spotify
 # https://github.com/omarryhan/pyfy#quick-start

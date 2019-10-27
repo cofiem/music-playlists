@@ -2,14 +2,13 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.0
+
 jobs:
   build:
     docker:
       - image: circleci/python:3.7.5
-
     working_directory: ~/repo
-
     steps:
       - checkout
 
@@ -37,3 +36,21 @@ jobs:
             - ./venv
             - ./cache
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
+
+workflows:
+  version: 2
+  commit-workflow:
+    jobs:
+      - build
+  scheduled-workflow:
+    triggers:
+      - schedule:
+          # every night at 1AM
+          cron: "0 1 * * *"
+          filters:
+            branches:
+              only:
+                - master
+
+    jobs:
+      - build

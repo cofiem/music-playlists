@@ -7,24 +7,25 @@ from helper_package.data_helper import DataHelper
 
 
 class MusicSourceTripleJMostPlayed:
-    # https://music.abcradio.net.au/api/v1/recordings/plays.json?order=desc&limit=50&service=triplej&from=2019-10-12T13:00:00Z&to=2019-10-19T13:00:00Z
-    url = 'https://music.abcradio.net.au/api/v1/recordings/plays.json?{qs}'
 
-    gmusic_playlist_id = os.getenv('MUSIC_SOURCE_TRIPLEJ_MOST_PLAYED_PLAYLIST_ID')
-    playlist_name = 'Triple J Most Played'
-    group_id = 'triplej_most_played'
-
-    url_date_format = '%Y-%m-%d'
-    data_helper = DataHelper()
-
-    def __init__(self):
+    def __init__(self, data_helper: DataHelper = None):
         self._logger = logging.getLogger('music_playlists.MusicSourceTripleJMostPlayed')
+        self._data_helper = data_helper or DataHelper()
+
+        # https://music.abcradio.net.au/api/v1/recordings/plays.json?order=desc&limit=50&service=triplej&from=2019-10-12T13:00:00Z&to=2019-10-19T13:00:00Z
+        self._url = 'https://music.abcradio.net.au/api/v1/recordings/plays.json?{qs}'
+
+        self._gmusic_playlist_id = os.getenv('MUSIC_SOURCE_TRIPLEJ_MOST_PLAYED_PLAYLIST_ID')
+        self._playlist_name = 'Triple J Most Played'
+        self._group_id = 'triplej_most_played'
+
+        self._url_date_format = '%Y-%m-%d'
 
     def run(self):
         current_time = datetime.today()
 
-        url = self.build_url(date_from=current_time - timedelta(days=7), date_to=current_time)
-        data = self.data_helper.download_json(url)
+        url = self.build_url(date_from=current_time - timedelta(days=8), date_to=current_time - timedelta(days=1))
+        data = self._data_helper.download_json(url)
 
         result = []
         for index, item in enumerate(data['items']):
@@ -42,9 +43,9 @@ class MusicSourceTripleJMostPlayed:
                     raise Exception(f"Unrecognised artist {raw_artist['type']}, {artist}, {raw_artist['name']}.")
 
             item = {
-                'source': self.group_id,
-                'source_playlist_title': self.playlist_name,
-                'source_playlist_id': self.gmusic_playlist_id,
+                'source': self._group_id,
+                'source_playlist_title': self._playlist_name,
+                'source_playlist_id': self._gmusic_playlist_id,
                 'retrieved_at': current_time,
                 'order': index + 1,
                 'title': title,
@@ -52,9 +53,6 @@ class MusicSourceTripleJMostPlayed:
                 'track_id': track_id,
                 'featuring': featuring.strip(', ')
             }
-            title, featuring = self.data_helper.normalise(item['title'], item['artist'])
-            item['title_compare'] = title
-            item['featuring'] = featuring
             result.append(item)
 
         self._logger.info('Completed document')
@@ -65,8 +63,8 @@ class MusicSourceTripleJMostPlayed:
             'order': order,
             'limit': limit,
             'service': service,
-            'date_from': f'{date_from.strftime(self.url_date_format)}T13:00:00Z',
-            'date_to': f'{date_to.strftime(self.url_date_format)}T13:00:00Z'
+            'from': f'{date_from.strftime(self._url_date_format)}T13:00:00Z',
+            'to': f'{date_to.strftime(self._url_date_format)}T13:00:00Z'
         })
-        url = self.url.format(qs=qs)
+        url = self._url.format(qs=qs)
         return url
