@@ -45,8 +45,8 @@ workflows:
   scheduled-workflow:
     triggers:
       - schedule:
-          # every night at 1AM
-          cron: "0 1 * * *"
+          # every day at 4am AEST, 6pm (18:00) UTC
+          cron: "0 18 * * *"
           filters:
             branches:
               only:
