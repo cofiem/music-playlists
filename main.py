@@ -10,6 +10,7 @@ from pytz import timezone
 from helper_package.data_helper import DataHelper
 from helper_package.music_source_triplej_most_played import MusicSourceTripleJMostPlayed
 from helper_package.music_source_triplej_unearthed_chart import MusicSourceTripleJUnearthedChart
+from helper_package.music_source_doublej_most_played import MusicSourceDoubleJMostPlayed
 from helper_package.stream_playlist_google_music import StreamPlaylistGoogleMusic
 
 # config logging
@@ -22,12 +23,13 @@ class Processing:
 
     def __init__(self):
         self._logger = logging.getLogger('music_playlists.Processing')
-        self._data_helper = DataHelper(use_cache=False)
+        self._data_helper = DataHelper(use_cache=True)
 
         self._gmusic = StreamPlaylistGoogleMusic(self._data_helper)
 
         self._triplej_unearthed_chart_data = MusicSourceTripleJUnearthedChart(self._data_helper)
         self._triplej_most_played_data = MusicSourceTripleJMostPlayed(self._data_helper)
+        self._doublej_most_played_data = MusicSourceDoubleJMostPlayed(self._data_helper)
 
     def run(self):
         self._logger.info('Starting...')
@@ -39,6 +41,7 @@ class Processing:
         # get the music sources
         triplej_most_played = self._triplej_most_played_data.run()
         triplej_unearthed_chart = self._triplej_unearthed_chart_data.run()
+        doublej_most_played = self._doublej_most_played_data.run()
 
         # login to streaming service
         self._logger.info('Logging in...')
@@ -49,7 +52,7 @@ class Processing:
         # build the song select structure
         self._logger.info('Selecting songs...')
         song_container = {}
-        for item in triplej_most_played + triplej_unearthed_chart:
+        for item in triplej_most_played + triplej_unearthed_chart + doublej_most_played:
             source = item['source']
             order = item['order']
             if source not in song_container:
