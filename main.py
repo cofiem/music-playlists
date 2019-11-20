@@ -23,7 +23,7 @@ class Processing:
 
     def __init__(self):
         self._logger = logging.getLogger('music_playlists.Processing')
-        self._data_helper = DataHelper(use_cache=True)
+        self._data_helper = DataHelper(use_cache=False)
 
         self._gmusic = StreamPlaylistGoogleMusic(self._data_helper)
 
