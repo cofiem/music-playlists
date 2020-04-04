@@ -1,26 +1,31 @@
 import logging
-import os
 from datetime import datetime
+from typing import Dict, List
 
 from lxml import html
 
-from helper_package.data_helper import DataHelper
+from music_playlists.downloader import Downloader
 
 
-class MusicSourceTripleJUnearthedChart:
+class TripleJUnearthedChart:
+    _logger = logging.getLogger(__name__)
 
-    def __init__(self, data_helper: DataHelper = None):
-        self._logger = logging.getLogger('music_playlists.MusicSourceTripleJUnearthedChart')
-        self._data_helper = data_helper or DataHelper()
+    available = [
+        {
+            'title': 'Triple J Unearthed Weekly',
+            'gmusic_playlist_id': 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_UNEARTHED_ID',
+        }
+    ]
+
+    def __init__(self, downloader: Downloader):
+        self._downloader = downloader
         self._url = 'https://www.triplejunearthed.com/discover/charts'
-        self._gmusic_playlist_id = os.getenv('MUSIC_SOURCE_TRIPLEJ_UNEARTHED_PLAYLIST_ID')
-        self._playlist_name = 'Triple J Unearthed'
-        self._group_id = 'triplej_unearthed_chart'
 
-    def run(self):
-        current_time = datetime.today()
+    def run(self, playlist_data: Dict[str, str]) -> List[Dict[str, str]]:
+        self._logger.info(f"Started '{playlist_data['title']}'")
+        current_time = datetime.now()
 
-        content_text = self._data_helper.download_text(self._url)
+        content_text = self._downloader.download_text(self._url)
         content_html = html.fromstring(content_text)
 
         result = []
@@ -33,17 +38,16 @@ class MusicSourceTripleJUnearthedChart:
             track_id = row.xpath(track_id_xpath)[0].strip().replace('/download/track/', '')
 
             item = {
-                'source': self._group_id,
-                'source_playlist_title': self._playlist_name,
-                'source_playlist_id': self._gmusic_playlist_id,
+                'playlist': playlist_data,
                 'retrieved_at': current_time,
                 'order': order,
-                'title': title,
+                'track': title,
                 'artist': artist,
                 'track_id': track_id,
-                'featuring': ''
+                'featuring': '',
+                'services': {},
             }
             result.append(item)
 
-        self._logger.info('Completed document')
+        self._logger.info(f"Completed {playlist_data['title']}")
         return result
