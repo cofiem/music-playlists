@@ -1,6 +1,8 @@
 import logging
 import os
 
+import pytz
+
 from music_playlists.downloader import Downloader
 from music_playlists.music_source.radio4zzz_most_played import Radio4zzzMostPlayed
 from music_playlists.music_source.triplej_most_played import TripleJMostPlayed
@@ -16,15 +18,16 @@ class Process:
     def __init__(self):
         is_ci = os.getenv('CI') == 'true'
         self._downloader = Downloader(use_cache=not is_ci)
-        self._playlist_data = PlaylistData()
+        self._time_zone = pytz.timezone('Australia/Brisbane')
+        self._playlist_data = PlaylistData(self._time_zone)
         self._gmusic = GoogleMusic(self._downloader, self._playlist_data)
         self._spotify = Spotify(self._downloader, self._playlist_data)
 
     def run(self):
         self._logger.info('Updating music playlists')
-        radio4zzz_most_played = Radio4zzzMostPlayed(self._downloader)
-        triplej_most_played = TripleJMostPlayed(self._downloader)
-        triplej_unearthed_chart = TripleJUnearthedChart(self._downloader)
+        radio4zzz_most_played = Radio4zzzMostPlayed(self._downloader, self._time_zone)
+        triplej_most_played = TripleJMostPlayed(self._downloader, self._time_zone)
+        triplej_unearthed_chart = TripleJUnearthedChart(self._downloader, self._time_zone)
 
         # obtain the track information and normalise the track details
         tracks = []

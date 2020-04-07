@@ -24,16 +24,17 @@ class TripleJMostPlayed:
         }
     ]
 
-    def __init__(self, downloader: Downloader):
+    def __init__(self, downloader: Downloader, time_zone: datetime.tzinfo):
         self._downloader = downloader
 
         # https://music.abcradio.net.au/api/v1/recordings/plays.json?order=desc&limit=50&service=doublej&from=2019-11-12T13:00:00Z&to=2019-11-19T13:00:00Z
         self._url = 'https://music.abcradio.net.au/api/v1/recordings/plays.json?{qs}'
+        self._time_zone = time_zone
 
     def run(self, playlist_data: Dict[str, str]):
         self._logger.info(f"Started '{playlist_data['title']}'")
-        current_day = datetime.today()
-        current_time = datetime.now()
+        current_time = datetime.now(tz=self._time_zone)
+        current_day = current_time.date()
 
         url = self.build_url(playlist_data['service'], date_from=current_day - timedelta(days=8), date_to=current_day - timedelta(days=1))
         data = self._downloader.download_json(url)

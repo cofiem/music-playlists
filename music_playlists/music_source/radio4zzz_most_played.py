@@ -17,14 +17,15 @@ class Radio4zzzMostPlayed:
         }
     ]
 
-    def __init__(self, downloader: Downloader):
+    def __init__(self, downloader: Downloader, time_zone: datetime.tzinfo):
         self._downloader = downloader
         self._url = 'https://airnet.org.au/rest/stations/4ZZZ/programs'
+        self._time_zone = time_zone
 
     def run(self, playlist_data: Dict[str, str]):
         self._logger.info(f"Started '{playlist_data['title']}'")
 
-        current_time = datetime.now()
+        current_time = datetime.now(tz=self._time_zone)
         date_from = current_time - timedelta(days=7)
         date_to = current_time
 
@@ -40,8 +41,8 @@ class Radio4zzzMostPlayed:
             episodes_url = f"{program['programRestUrl']}/episodes"
             episodes = self._downloader.download_json(episodes_url)
             for episode in (episodes or []):
-                episode_start = datetime.strptime(episode['start'], '%Y-%m-%d %H:%M:%S')
-                episode_end = datetime.strptime(episode['end'], '%Y-%m-%d %H:%M:%S')
+                episode_start = datetime.strptime(episode['start'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=self._time_zone)
+                episode_end = datetime.strptime(episode['end'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=self._time_zone)
                 if date_from > episode_start or date_to < episode_start or date_from > episode_end or date_to < episode_end:
                     continue
 

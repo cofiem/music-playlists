@@ -17,13 +17,14 @@ class TripleJUnearthedChart:
         }
     ]
 
-    def __init__(self, downloader: Downloader):
+    def __init__(self, downloader: Downloader, time_zone: datetime.tzinfo):
         self._downloader = downloader
         self._url = 'https://www.triplejunearthed.com/discover/charts'
+        self._time_zone = time_zone
 
     def run(self, playlist_data: Dict[str, str]) -> List[Dict[str, str]]:
         self._logger.info(f"Started '{playlist_data['title']}'")
-        current_time = datetime.now()
+        current_time = datetime.now(tz=self._time_zone)
 
         content_text = self._downloader.download_text(self._url)
         content_html = html.fromstring(content_text)

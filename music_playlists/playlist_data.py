@@ -10,6 +10,9 @@ from boltons.strutils import slugify
 class PlaylistData:
     _logger = logging.getLogger(__name__)
 
+    def __init__(self, time_zone: datetime.tzinfo):
+        self._time_zone = time_zone
+
     def normalise(self, track: str, artist: str, featuring: str = None) -> Tuple[str, str, str]:
         norm_track = track if track else ''
         norm_artist = artist if artist else ''
@@ -127,6 +130,7 @@ class PlaylistData:
         return {}
 
     def build_playlists(self, tracks: List[Dict]) -> List[Dict[str, Any]]:
+        current_datetime = datetime.now(tz=self._time_zone)
         self._logger.info('Building playlists')
         playlists = {}
         for track in tracks:
@@ -142,7 +146,7 @@ class PlaylistData:
                 if playlist_code not in playlists:
                     playlists[playlist_code] = {
                         'title': playlist_title,
-                        'display_name': f"{playlist_title} ({datetime.now().strftime('%a, %d %b %Y')})",
+                        'display_name': f"{playlist_title} ({current_datetime.strftime('%a, %d %b %Y')})",
                         'playlist_id': os.getenv(playlist_id) if playlist_id else None,
                         'description': '',
                         'tracks_missing': 0,
