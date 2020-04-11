@@ -24,16 +24,16 @@ jobs:
               source ~/venv/bin/activate
               pip install -r requirements.txt
             fi
-      - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
-          paths:
-            - ~/venv
-            - ~/project/cache_persist
       - run:
           name: Run main script
           command: |
             source ~/venv/bin/activate
             python3 ./main.py
+      - save_cache:
+          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
+          paths:
+            - ~/venv
+            - ~/project/cache_persist
 
 workflows:
   version: 2
