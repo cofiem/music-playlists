@@ -6,6 +6,7 @@ version: 2.0
 
 jobs:
   build:
+    working_directory: ~/project
     docker:
       - image: circleci/python:3.7.5
     steps:
@@ -27,6 +28,7 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
           paths:
             - ~/venv
+            - ~/project/cache_persist
       - run:
           name: Run main script
           command: |

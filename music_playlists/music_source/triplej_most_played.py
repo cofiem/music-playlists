@@ -1,11 +1,13 @@
 import logging
 from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import Dict, Any, List, Tuple
 from urllib.parse import urlencode
 
-from boltons.strutils import slugify
-
+from music_playlists.data.track import Track
 from music_playlists.downloader import Downloader
+from music_playlists.music_service.google_music import GoogleMusic
+from music_playlists.music_service.service_playlist import ServicePlaylist
+from music_playlists.music_source.source_playlist import SourcePlaylist
 
 
 class TripleJMostPlayed:
@@ -14,13 +16,17 @@ class TripleJMostPlayed:
     available = [
         {
             'title': 'Double J Most Played Daily',
-            'service': 'doublej',
-            'gmusic_playlist_id': 'GOOGLE_MUSIC_PLAYLIST_DOUBLEJ_MOST_PLAYED_ID',
+            'source_name': 'doublej',
+            'services': {
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_DOUBLEJ_MOST_PLAYED_ID',
+            }
         },
         {
             'title': 'Triple J Most Played Daily',
-            'service': 'triplej',
-           'gmusic_playlist_id': 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_MOST_PLAYED_ID',
+            'source_name': 'triplej',
+            'services': {
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_MOST_PLAYED_ID',
+            }
         }
     ]
 
@@ -31,22 +37,43 @@ class TripleJMostPlayed:
         self._url = 'https://music.abcradio.net.au/api/v1/recordings/plays.json?{qs}'
         self._time_zone = time_zone
 
-    def run(self, playlist_data: Dict[str, str]):
-        self._logger.info(f"Started '{playlist_data['title']}'")
+    def playlists(self):
+        result = []
+        for item in self.available:
+            result.append(self.playlist(item))
+        return result
+
+    def playlist(self, data: Dict[str, Any]) -> Tuple[SourcePlaylist, List[ServicePlaylist]]:
+        self._logger.info(f"Started '{data['title']}'")
+
+        # create source playlist and service playlists
+        source_playlist = SourcePlaylist(playlist_name=data['title'])
+        service_playlists = []
+        for k, v in data['services'].items():
+            service_playlists.append(ServicePlaylist(
+                playlist_name=data['title'],
+                service_name=k,
+                service_playlist_env_var=v))
+
+        # build dates for urls
         current_time = datetime.now(tz=self._time_zone)
         current_day = current_time.date()
 
-        url = self.build_url(playlist_data['service'], date_from=current_day - timedelta(days=8), date_to=current_day - timedelta(days=1))
-        data = self._downloader.download_json(url)
+        url = self.build_url(
+            data['source_name'], date_from=current_day - timedelta(days=8), date_to=current_day - timedelta(days=1))
 
-        result = []
-        for index, item in enumerate(data['items']):
+        # download track list
+        tracks_data = self._downloader.download_json(self._downloader.cache_persisted, url)
+
+        for index, item in enumerate(tracks_data['items']):
             title = item['title']
             track_id = item['arid']
+            original_artists = item['artists']
 
+            # get primary artist and featured artists
             artist = ''
             featuring = ''
-            for raw_artist in item['artists']:
+            for raw_artist in original_artists:
                 if raw_artist['type'] == 'primary':
                     artist = f'{artist}, {raw_artist["name"]}'
                 elif raw_artist['type'] == 'featured':
@@ -54,20 +81,25 @@ class TripleJMostPlayed:
                 else:
                     raise Exception(f"Unrecognised artist {raw_artist['type']}, {artist}, {raw_artist['name']}.")
 
-            item = {
-                'playlist': playlist_data,
-                'retrieved_at': current_time,
-                'order': index + 1,
-                'track': title,
-                'artist': artist.strip(', '),
-                'track_id': track_id,
-                'featuring': featuring.strip(', '),
-                'services': {},
-            }
-            result.append(item)
+            artists = [artist.strip(', ')]
+            for i in featuring.split(', '):
+                featured = i.strip(', ')
+                if featured and featured not in artists:
+                    artists.append(featured)
 
-        self._logger.info(f"Completed '{playlist_data['title']}'")
-        return result
+            # build track
+            source_playlist.tracks.append(Track(
+                name=title,
+                artists=artists,
+                info={
+                    'source_id': track_id,
+                    'source_order': index + 1,
+                    'original_track': title,
+                    'original_artists': original_artists
+                }))
+
+        self._logger.info(f"Completed '{data['title']}'")
+        return source_playlist, service_playlists
 
     def build_url(self, service, date_from, date_to, order='desc', limit='50'):
         qs = urlencode({

@@ -1,10 +1,14 @@
 import logging
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Any, Tuple
 
 from lxml import html
 
+from music_playlists.data.track import Track
 from music_playlists.downloader import Downloader
+from music_playlists.music_service.google_music import GoogleMusic
+from music_playlists.music_service.service_playlist import ServicePlaylist
+from music_playlists.music_source.source_playlist import SourcePlaylist
 
 
 class TripleJUnearthedChart:
@@ -13,7 +17,9 @@ class TripleJUnearthedChart:
     available = [
         {
             'title': 'Triple J Unearthed Weekly',
-            'gmusic_playlist_id': 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_UNEARTHED_ID',
+            'services': {
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_UNEARTHED_ID',
+            }
         }
     ]
 
@@ -22,14 +28,27 @@ class TripleJUnearthedChart:
         self._url = 'https://www.triplejunearthed.com/discover/charts'
         self._time_zone = time_zone
 
-    def run(self, playlist_data: Dict[str, str]) -> List[Dict[str, str]]:
-        self._logger.info(f"Started '{playlist_data['title']}'")
-        current_time = datetime.now(tz=self._time_zone)
+    def playlists(self):
+        result = []
+        for item in self.available:
+            result.append(self.playlist(item))
+        return result
 
-        content_text = self._downloader.download_text(self._url)
+    def playlist(self, data: Dict[str, Any]) -> Tuple[SourcePlaylist, List[ServicePlaylist]]:
+        self._logger.info(f"Started '{data['title']}'")
+
+        # create source playlist and service playlists
+        source_playlist = SourcePlaylist(playlist_name=data['title'])
+        service_playlists = []
+        for k, v in data['services'].items():
+            service_playlists.append(ServicePlaylist(
+                playlist_name=data['title'],
+                service_name=k,
+                service_playlist_env_var=v))
+
+        content_text = self._downloader.download_text(self._downloader.cache_temp, self._url)
         content_html = html.fromstring(content_text)
 
-        result = []
         for row in content_html.xpath('//li[@class="track"]'):
             order = row.xpath('./div[@class="this_week"]/text()')[0].strip()
             title = row.xpath('./div[@class="track_title"]/text()')[0].strip()
@@ -38,17 +57,14 @@ class TripleJUnearthedChart:
             track_id_xpath = './div[@class="play_actions"]/a[@class="play_download_large"]/@href'
             track_id = row.xpath(track_id_xpath)[0].strip().replace('/download/track/', '')
 
-            item = {
-                'playlist': playlist_data,
-                'retrieved_at': current_time,
-                'order': order,
-                'track': title,
-                'artist': artist,
-                'track_id': track_id,
-                'featuring': '',
-                'services': {},
-            }
-            result.append(item)
+            source_playlist.tracks.append(Track(
+                name=title,
+                artists=[artist],
+                info={
+                    'source_id': track_id,
+                    'source_order': order
+                }
+            ))
 
-        self._logger.info(f"Completed {playlist_data['title']}")
-        return result
+        self._logger.info(f"Completed {data['title']}")
+        return source_playlist, service_playlists

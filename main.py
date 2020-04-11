@@ -1,14 +1,40 @@
 from logging.config import dictConfig
-from os.path import abspath, join, dirname
-
-import yaml
 
 from music_playlists.process import Process
 
-with open(abspath(join(dirname(abspath(__file__)), 'data', 'logging.yml')), 'rt') as f:
-    # config logging
-    config = yaml.safe_load(f)
-    dictConfig(config)
+dictConfig({
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s',
+            'level': 'INFO',
+            'datefmt': '%Y-%m-%dT%H:%M:%S%z',
+        }
+    },
+    'handlers': {
+        'standard': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        }
+    },
+    'loggers': {
+        'music_playlists': {
+            'level': 'INFO',
+            'handlers': ['standard'],
+            'propagate': False,
+        },
+        'gmusicapi': {
+            'level': 'INFO',
+            'handlers': ['standard'],
+            'propagate': False,
+        },
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['standard']
+    }
+})
 
 if __name__ == '__main__':
     processing = Process()

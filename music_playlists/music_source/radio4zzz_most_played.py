@@ -1,10 +1,14 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Tuple
 
 from boltons.strutils import slugify
 
+from music_playlists.data.track import Track
 from music_playlists.downloader import Downloader
+from music_playlists.music_service.google_music import GoogleMusic
+from music_playlists.music_service.service_playlist import ServicePlaylist
+from music_playlists.music_source.source_playlist import SourcePlaylist
 
 
 class Radio4zzzMostPlayed:
@@ -13,7 +17,9 @@ class Radio4zzzMostPlayed:
     available = [
         {
             'title': '4zzz Most Played Weekly',
-            'gmusic_playlist_id': 'GOOGLE_MUSIC_PLAYLIST_RADIO_4ZZZ_MOST_PLAYED_ID',
+            'services': {
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_RADIO_4ZZZ_MOST_PLAYED_ID',
+            }
         }
     ]
 
@@ -22,55 +28,58 @@ class Radio4zzzMostPlayed:
         self._url = 'https://airnet.org.au/rest/stations/4ZZZ/programs'
         self._time_zone = time_zone
 
-    def run(self, playlist_data: Dict[str, str]):
-        self._logger.info(f"Started '{playlist_data['title']}'")
+    def playlists(self):
+        result = []
+        for item in self.available:
+            result.append(self.playlist(item))
+        return result
 
+    def playlist(self, data: Dict[str, Any]) -> Tuple[SourcePlaylist, List[ServicePlaylist]]:
+        self._logger.info(f"Started '{data['title']}'")
+
+        # create source playlist and service playlists
+        source_playlist = SourcePlaylist(playlist_name=data['title'])
+        service_playlists = []
+        for k, v in data['services'].items():
+            service_playlists.append(ServicePlaylist(
+                playlist_name=data['title'],
+                service_name=k,
+                service_playlist_env_var=v))
+
+        # build dates for urls
         current_time = datetime.now(tz=self._time_zone)
         date_from = current_time - timedelta(days=7)
         date_to = current_time
 
-        programs = self._downloader.download_json(self._url)
+        # download 4zzz programs
+        programs = self._downloader.download_json(self._downloader.cache_temp, self._url)
 
-        programs_with_recent_episodes = set()
         tracks = {}
+
+        # programs
         for program in programs:
             if program.get('archived'):
                 continue
             program_name = program['name']
 
+            # episodes
             episodes_url = f"{program['programRestUrl']}/episodes"
-            episodes = self._downloader.download_json(episodes_url)
+            episodes = self._downloader.download_json(self._downloader.cache_temp, episodes_url)
             for episode in (episodes or []):
                 episode_start = datetime.strptime(episode['start'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=self._time_zone)
                 episode_end = datetime.strptime(episode['end'], '%Y-%m-%d %H:%M:%S').replace(tzinfo=self._time_zone)
-                if date_from > episode_start or date_to < episode_start or date_from > episode_end or date_to < episode_end:
+                if date_from > episode_start or date_to < episode_start or \
+                        date_from > episode_end or date_to < episode_end:
                     continue
 
-                programs_with_recent_episodes.add(program_name)
-
+                # playlist tracks
                 playlist_url = f"{episode['episodeRestUrl']}/playlists"
-                playlist = self._downloader.download_json(playlist_url)
-                for track in (playlist or []):
+                playlist_raw = self._downloader.download_json(self._downloader.cache_persisted, playlist_url)
+                for track in (playlist_raw or []):
                     track_type = track['type']
-                    track_id = track['id']
                     track_artist = track['artist']
                     track_title = track['title']
                     track_track = track['track']
-                    track_release = track['release']
-                    track_time = track['time']
-                    track_notes = track['notes']
-                    track_twitter = track['twitterHandle']
-                    track_content = track['contentDescriptors']
-                    track_is_australian = track_content['isAustralian']
-                    track_is_local = track_content['isLocal']
-                    track_is_female = track_content['isFemale']
-                    track_is_indigenous = track_content['isIndigenous']
-                    track_is_new = track_content['isNew']
-                    track_wikipedia = track['wikipedia']
-                    track_image = track['image']
-                    track_video = track['video']
-                    track_url = track['url']
-                    track_approximate_time = track['approximateTime']
 
                     if track_type != 'track':
                         raise Exception(f"Track type is expected to be 'track', but is {track_type}.")
@@ -79,54 +88,50 @@ class Radio4zzzMostPlayed:
                         raise Exception(
                             f"Title and track are expected to match, but do not: '{track_title}' != '{track_track}'")
 
-                    item = {
-                        'type': track_type,
-                        'id': track_id,
-                        'artist': track_artist,
-                        'title': track_title,
-                        'track': track_track,
-                        'release': track_release,
-                        'time': track_time,
-                        'notes': track_notes,
-                        'twitter': track_twitter,
-                        'content': track_content,
-                        'is_australian': track_is_australian,
-                        'is_local': track_is_local,
-                        'is_female': track_is_female,
-                        'is_indigenous': track_is_indigenous,
-                        'is_new': track_is_new,
-                        'wikipedia': track_wikipedia,
-                        'image': track_image,
-                        'video': track_video,
-                        'url': track_url,
-                        'approximate_time': track_approximate_time,
-                        'program_name': program_name,
-                        'episode_start': episode_start,
-                    }
-
                     track_key = '-'.join([
                         slugify(track_artist, delim='-', ascii=True).decode('utf-8'),
                         slugify(track_track, delim='-', ascii=True).decode('utf-8')
                     ])
+
+                    item = {
+                        'type': track_type,
+                        'id': track['id'],
+                        'artist': track_artist,
+                        'title': track_title,
+                        'track': track_track,
+                        'release': track['release'],
+                        'time': track['time'],
+                        'notes': track['notes'],
+                        'twitter': track['twitterHandle'],
+                        'is_australian': track['contentDescriptors']['isAustralian'],
+                        'is_local': track['contentDescriptors']['isLocal'],
+                        'is_female': track['contentDescriptors']['isFemale'],
+                        'is_indigenous': track['contentDescriptors']['isIndigenous'],
+                        'is_new': track['contentDescriptors']['isNew'],
+                        'wikipedia': track['wikipedia'],
+                        'image': track['image'],
+                        'video': track['video'],
+                        'url': track['url'],
+                        'approximate_time': track['approximateTime'],
+                        'program_name': program_name,
+                        'episode_start': episode_start,
+                    }
+
                     if track_key in tracks:
                         tracks[track_key].append(item)
                     else:
                         tracks[track_key] = [item]
 
+        # find the most played tracks
         most_played_tracks = sorted([(len(v), k, v) for k, v in tracks.items() if len(v) > 1], reverse=True)
 
-        result = []
+        # build the source playlist tracks
         for index, most_played_track in enumerate(most_played_tracks):
-            item = {
-                'playlist': playlist_data,
-                'retrieved_at': current_time,
-                'order': index + 1,
-                'track': self._choose_value([i['track'] for i in most_played_track[2]]),
-                'artist': self._choose_value([i['artist'] for i in most_played_track[2]]),
-                'track_id': most_played_track[1],
-                'featuring': '',
-                'services': {},
-                'extra': {
+            source_playlist.tracks.append(Track(
+                name=self._choose_value([i['track'] for i in most_played_track[2]]),
+                artists=[self._choose_value([i['artist'] for i in most_played_track[2]])],
+                info={
+                    'source_id': most_played_track[1],
                     'is_australian': self._choose_value([i['is_australian'] for i in most_played_track[2]]),
                     'is_local': self._choose_value([i['is_local'] for i in most_played_track[2]]),
                     'is_female': self._choose_value([i['is_female'] for i in most_played_track[2]]),
@@ -140,12 +145,10 @@ class Radio4zzzMostPlayed:
                     'videos': {i['video'] for i in most_played_track[2] if i['video']} or None,
                     'urls': {i['url'] for i in most_played_track[2] if i['url']} or None,
                     'program_names': {i['program_name'] for i in most_played_track[2] if i['program_name']} or None,
-                }
-            }
-            result.append(item)
+                }))
 
-        self._logger.info(f"Completed {playlist_data['title']}")
-        return result
+        self._logger.info(f"Completed {data['title']}")
+        return source_playlist, service_playlists
 
     def _choose_value(self, values: List[Any]) -> Any:
         gathered = {}

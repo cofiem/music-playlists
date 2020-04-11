@@ -128,4 +128,5 @@ dmypy.json
 .pyre/
 
 # custom
-cache/
+cache_persist/
+cache_temp/
