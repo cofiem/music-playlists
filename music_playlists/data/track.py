@@ -8,6 +8,7 @@ from boltons.strutils import slugify
 @dataclass
 class Track:
     """Details for a generic track."""
+    track_id: str
     name: str
     artists: List[str]
 

@@ -79,8 +79,8 @@ class ServicePlaylist:
 
         # update the new playlist changes and set description
         self.tracks_total = self.tracks_included + self.tracks_missing
-        old_ids = [i.info['nid'] for i in service_tracks]
-        new_ids = [i.info['nid'] for i in self.tracks]
+        old_ids = [i.track_id for i in service_tracks]
+        new_ids = [i.track_id for i in self.tracks]
 
         for old_index, old_id in enumerate(old_ids):
             try:

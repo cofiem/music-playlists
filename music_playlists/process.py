@@ -5,7 +5,9 @@ import pytz
 from music_playlists.downloader import Downloader
 from music_playlists.music_service.google_music import GoogleMusic
 from music_playlists.music_service.spotify import Spotify
+from music_playlists.music_source.last_fm_most_popular import LastFmMostPopular
 from music_playlists.music_source.radio4zzz_most_played import Radio4zzzMostPlayed
+from music_playlists.music_source.sound_cloud_trending import SoundCloudTrending
 from music_playlists.music_source.triplej_most_played import TripleJMostPlayed
 from music_playlists.music_source.triplej_unearthed_chart import TripleJUnearthedChart
 
@@ -21,6 +23,8 @@ class Process:
         self._radio4zzz_most_played = Radio4zzzMostPlayed(self._downloader, self._time_zone)
         self._triplej_most_played = TripleJMostPlayed(self._downloader, self._time_zone)
         self._triplej_unearthed_chart = TripleJUnearthedChart(self._downloader, self._time_zone)
+        self._last_fm_most_popular = LastFmMostPopular(self._downloader, self._time_zone)
+        self._sound_cloud_trending = SoundCloudTrending(self._downloader, self._time_zone)
 
     def run(self):
         self._logger.info('Updating music playlists')
@@ -31,6 +35,8 @@ class Process:
             self._radio4zzz_most_played.playlists(),
             self._triplej_most_played.playlists(),
             self._triplej_unearthed_chart.playlists(),
+            self._last_fm_most_popular.playlists(),
+            self._sound_cloud_trending.playlists(),
         ]
         for source in sources:
             for source_playlist, service_playlists in source:
@@ -46,8 +52,10 @@ class Process:
 
         # find songs in streaming services and build new playlists
         self._gmusic.login()
+        self._spotify.login()
         services = {
             GoogleMusic.CODE: self._gmusic,
+            Spotify.CODE: self._spotify,
         }
         for service_name, service_object in services.items():
             for playlist_name, playlist_object in playlists[service_name].items():
@@ -63,7 +71,10 @@ class Process:
 
                 self._logger.info(f"Finished updating '{service_name}' playlist "
                                   f"'{playlist_new.playlist_title}' "
-                                  f"({playlist_new.service_playlist_code})")
+                                  f"({playlist_new.service_playlist_code}): {playlist_new.playlist_description}")
 
         # done
         self._logger.info('Finished updating music playlists')
+
+    def init_spotify(self):
+        self._spotify.login_init()

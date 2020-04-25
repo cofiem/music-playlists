@@ -5,10 +5,10 @@
 version: 2.0
 
 jobs:
-  build:
+  update_playlists:
     working_directory: ~/project
     docker:
-      - image: circleci/python:3.7.5
+      - image: circleci/python:3.8
     steps:
       - checkout
       - restore_cache:
@@ -39,7 +39,7 @@ workflows:
   version: 2
   commit-workflow:
     jobs:
-      - build
+      - update_playlists
   scheduled-workflow:
     triggers:
       - schedule:
@@ -50,4 +50,4 @@ workflows:
               only:
                 - master
     jobs:
-      - build
+      - update_playlists

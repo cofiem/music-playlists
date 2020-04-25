@@ -63,6 +63,11 @@ class Downloader:
         if not key:
             raise Exception('Must provide a cache key.')
         item_id = slugify(key, delim='_', ascii=True).decode('utf-8').strip().casefold()
+
+        windows_invalid_chars = r"<>:\"/\|?*'"
+        for windows_invalid_char in windows_invalid_chars:
+            item_id = item_id.replace(windows_invalid_char, '_')
+
         return item_id
 
     def store_page(self, cache_name: str, url: str, content: Any) -> bool:

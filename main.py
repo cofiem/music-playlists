@@ -7,7 +7,7 @@ dictConfig({
     'disable_existing_loggers': True,
     'formatters': {
         'standard': {
-            'format': '%(asctime)s [%(levelname)-8s] %(name)s: %(message)s',
+            'format': '%(asctime)s - %(levelname)-8s - %(name)s: %(message)s',
             'level': 'INFO',
             'datefmt': '%Y-%m-%dT%H:%M:%S%z',
         }

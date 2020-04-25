@@ -8,6 +8,7 @@ from music_playlists.data.track import Track
 from music_playlists.downloader import Downloader
 from music_playlists.music_service.google_music import GoogleMusic
 from music_playlists.music_service.service_playlist import ServicePlaylist
+from music_playlists.music_service.spotify import Spotify
 from music_playlists.music_source.source_playlist import SourcePlaylist
 
 
@@ -17,8 +18,10 @@ class TripleJUnearthedChart:
     available = [
         {
             'title': 'Triple J Unearthed Weekly',
+            'source_url': 'https://www.triplejunearthed.com/discover/charts',
             'services': {
-                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_UNEARTHED_ID',
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED',
+                Spotify.CODE: 'SPOTIFY_PLAYLIST_ID_TRIPLEJ_UNEARTHED',
             }
         }
     ]
@@ -58,6 +61,7 @@ class TripleJUnearthedChart:
             track_id = row.xpath(track_id_xpath)[0].strip().replace('/download/track/', '')
 
             source_playlist.tracks.append(Track(
+                track_id=track_id,
                 name=title,
                 artists=[artist],
                 info={

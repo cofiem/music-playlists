@@ -1,6 +1,6 @@
 # required python packages
-gmusicapi==13.0.0
-lxml==4.5.0
-requests==2.23.0
-boltons==20.1.0
+gmusicapi
+boltons
+requests
 pytz
+lxml

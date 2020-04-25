@@ -7,6 +7,7 @@ from music_playlists.data.track import Track
 from music_playlists.downloader import Downloader
 from music_playlists.music_service.google_music import GoogleMusic
 from music_playlists.music_service.service_playlist import ServicePlaylist
+from music_playlists.music_service.spotify import Spotify
 from music_playlists.music_source.source_playlist import SourcePlaylist
 
 
@@ -16,16 +17,20 @@ class TripleJMostPlayed:
     available = [
         {
             'title': 'Double J Most Played Daily',
+            'source_url': 'https://www.abc.net.au/doublej/featured-music/most-played/',
             'source_name': 'doublej',
             'services': {
-                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_DOUBLEJ_MOST_PLAYED_ID',
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED',
+                Spotify.CODE: 'SPOTIFY_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED',
             }
         },
         {
             'title': 'Triple J Most Played Daily',
+            'source_url': 'https://www.abc.net.au/triplej/featured-music/most-played/',
             'source_name': 'triplej',
             'services': {
-                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_TRIPLEJ_MOST_PLAYED_ID',
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED',
+                Spotify.CODE: 'SPOTIFY_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED',
             }
         }
     ]
@@ -89,6 +94,7 @@ class TripleJMostPlayed:
 
             # build track
             source_playlist.tracks.append(Track(
+                track_id=track_id,
                 name=title,
                 artists=artists,
                 info={

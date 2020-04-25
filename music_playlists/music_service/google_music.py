@@ -24,11 +24,11 @@ class GoogleMusic:
     def login(self) -> bool:
         """Login to google music."""
         self._logger.info(f'Logging in to Google Music')
-        creds_data = os.getenv('GMUSIC_COFIG')
-        device_id = os.getenv('GMUSICAPI_DEVICE_ID')
+        creds_data = os.getenv('GOOGLE_MUSIC_AUTH_CONFIG')
+        device_id = os.getenv('GOOGLE_MUSIC_AUTH_DEVICE_ID')
 
         if not creds_data or not device_id:
-            raise Exception("Could not obtain 'GMUSIC_COFIG' or 'GMUSICAPI_DEVICE_ID'")
+            raise Exception("Could not obtain 'GOOGLE_MUSIC_AUTH_CONFIG' or 'GOOGLE_MUSIC_AUTH_DEVICE_ID'")
 
         # create creds file
         if os.getenv('CI'):
@@ -73,6 +73,7 @@ class GoogleMusic:
     def playlist_songs_add(self, playlist_id: str, song_ids: List[str]) -> List[str]:
         """Add songs to a playlist. The song ids are the general track ids."""
         self._logger.info(f"Adding {len(song_ids)} songs")
+        # TODO: this fails with TOO_MANY_ITEMS error
         return self._client_mobile.add_songs_to_playlist(playlist_id, song_ids)
 
     def playlist_songs_remove(self, song_ids: List[str]) -> List[Tuple[str, str]]:
@@ -94,15 +95,10 @@ class GoogleMusic:
                     if not t.get('track'):
                         continue
                     result.tracks.append(Track(
+                        track_id=self._get_track_id(t),
                         name=t['track'].get('title'),
                         artists=[t['track'].get('artist')],
-                        info={
-                            'track_playlist_id': t.get('id'),
-                            'track_id': t['track'].get('trackId') or t.get('trackId'),
-                            'store_id': t['track'].get('storeId'),
-                            'service_id': t['track'].get('id'),
-                            'nid': t['track'].get('nid'),
-                        }))
+                        info=t))
         return result
 
     def playlist_new(self, source_playlist: SourcePlaylist, service_playlist: ServicePlaylist) -> ServicePlaylist:
@@ -117,7 +113,7 @@ class GoogleMusic:
 
         return result
 
-    def playlist_update(self, service_playlist_old: ServicePlaylist, service_playlist_new: ServicePlaylist):
+    def playlist_update(self, service_playlist_old: ServicePlaylist, service_playlist_new: ServicePlaylist) -> None:
         self.playlist_update_metadata(
             playlist_id=service_playlist_new.service_playlist_code,
             title=service_playlist_new.playlist_title,
@@ -125,14 +121,15 @@ class GoogleMusic:
             public=True)
 
         # remove all old songs, then add all new songs, to keep order of songs
-        song_playlist_ids_to_remove = [i.info['track_playlist_id'] for i in service_playlist_old.tracks]
+        song_playlist_ids_to_remove = [i.info.get('track_playlist_id') for i in service_playlist_old.tracks]
         if song_playlist_ids_to_remove:
             self.playlist_songs_remove(song_playlist_ids_to_remove)
 
         # add new set of songs
-        song_playlist_ids_to_add = [
-            i.info.get('store_id') or i.info.get('track_id') or i.info.get('nid')
-            for i in service_playlist_new.tracks]
+        song_playlist_ids_to_add = []
+        for track in service_playlist_new.tracks:
+            if track.track_id and track.track_id not in song_playlist_ids_to_add:
+                song_playlist_ids_to_add.append(track.track_id)
         if song_playlist_ids_to_add:
             self.playlist_songs_add(service_playlist_new.service_playlist_code, song_playlist_ids_to_add)
 
@@ -144,7 +141,7 @@ class GoogleMusic:
         tracks = []
         for query in queries:
             # cache response and use cache if available
-            key = f"gmusicapi query {query}"
+            key = f"{self.CODE}api query {query}"
             query_result = self._downloader.retrieve_object(self._downloader.cache_persisted, key)
             if query_result is not None:
                 used_cache = True
@@ -161,6 +158,7 @@ class GoogleMusic:
                     if not match:
                         continue
                     track = Track(
+                        track_id=self._get_track_id(match),
                         name=match.get('title'),
                         artists=[match.get('artist')],
                         info={**match}
@@ -170,3 +168,12 @@ class GoogleMusic:
                     tracks.append(track)
                     break
         return used_cache, tracks
+
+    def _get_track_id(self, track: Dict) -> Optional[str]:
+        """Get the track_id for a Google Music track."""
+        track_id = track.get('storeId') or track.get('id') or track.get('trackId') or track.get('nid')
+        if track.get('track'):
+            track_data = track.get('track')
+            track_id = track_id or track_data.get('storeId') or track_data.get('id') or track_data.get(
+                'trackId') or track_data.get('nid')
+        return track_id

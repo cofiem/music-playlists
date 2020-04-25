@@ -8,6 +8,7 @@ from music_playlists.data.track import Track
 from music_playlists.downloader import Downloader
 from music_playlists.music_service.google_music import GoogleMusic
 from music_playlists.music_service.service_playlist import ServicePlaylist
+from music_playlists.music_service.spotify import Spotify
 from music_playlists.music_source.source_playlist import SourcePlaylist
 
 
@@ -17,8 +18,10 @@ class Radio4zzzMostPlayed:
     available = [
         {
             'title': '4zzz Most Played Weekly',
+            'source_url': 'http://4zzz.org.au/',
             'services': {
-                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_RADIO_4ZZZ_MOST_PLAYED_ID',
+                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED',
+                Spotify.CODE: 'SPOTIFY_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED',
             }
         }
     ]
@@ -128,6 +131,7 @@ class Radio4zzzMostPlayed:
         # build the source playlist tracks
         for index, most_played_track in enumerate(most_played_tracks):
             source_playlist.tracks.append(Track(
+                track_id=most_played_track[1],
                 name=self._choose_value([i['track'] for i in most_played_track[2]]),
                 artists=[self._choose_value([i['artist'] for i in most_played_track[2]])],
                 info={
