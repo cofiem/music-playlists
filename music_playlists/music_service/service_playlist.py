@@ -58,7 +58,7 @@ class ServicePlaylist:
                     break
 
             if not found_track:
-                if used_cache:
+                if not used_cache:
                     sleep(1)
                 used_cache, available_tracks = query_track(source_track)
                 for available_track in available_tracks:
@@ -109,9 +109,6 @@ class ServicePlaylist:
             f"This playlist is generated each day.",
             f"There are {self.tracks_included} songs of {self.tracks_total} ({tracks_percent:.0%}).",
             f"Couldn't find {self.tracks_missing} songs.",
-            "Since the previous generation of this playlist,",
-            f"{self.tracks_new} songs have been added and {self.tracks_removed} songs removed.",
-            f"{self.tracks_up} songs have moved up and {self.tracks_down} songs have moved down.",
             "For more information: https://github.com/cofiem/music-playlists"
         ])
         current_datetime = datetime.now(tz=time_zone)

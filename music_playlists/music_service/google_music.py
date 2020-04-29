@@ -72,13 +72,14 @@ class GoogleMusic:
 
     def playlist_songs_add(self, playlist_id: str, song_ids: List[str]) -> List[str]:
         """Add songs to a playlist. The song ids are the general track ids."""
-        self._logger.info(f"Adding {len(song_ids)} songs")
-        # TODO: this fails with TOO_MANY_ITEMS error
+        self._logger.info(f"Adding {len(song_ids)} songs to '{playlist_id}'")
+        # TODO: this sometimes fails with TOO_MANY_ITEMS error
+        # '{"mutate_response":[{"response_code":"TOO_MANY_ITEMS"}, ...]}'
         return self._client_mobile.add_songs_to_playlist(playlist_id, song_ids)
 
-    def playlist_songs_remove(self, song_ids: List[str]) -> List[Tuple[str, str]]:
+    def playlist_songs_remove(self, playlist_id: str, song_ids: List[str]) -> List[Tuple[str, str]]:
         """Remove songs from a playlist. The song ids are the playlist-specific song ids."""
-        self._logger.info(f"Removing {len(song_ids)} songs")
+        self._logger.info(f"Removing {len(song_ids)} songs from '{playlist_id}'")
         return self._client_mobile.remove_entries_from_playlist(song_ids)
 
     def playlist_existing(self, service_playlist: ServicePlaylist) -> ServicePlaylist:
@@ -95,7 +96,7 @@ class GoogleMusic:
                     if not t.get('track'):
                         continue
                     result.tracks.append(Track(
-                        track_id=self._get_track_id(t),
+                        track_id=self._get_track_id(t['track']),
                         name=t['track'].get('title'),
                         artists=[t['track'].get('artist')],
                         info=t))
@@ -121,9 +122,9 @@ class GoogleMusic:
             public=True)
 
         # remove all old songs, then add all new songs, to keep order of songs
-        song_playlist_ids_to_remove = [i.info.get('track_playlist_id') for i in service_playlist_old.tracks]
+        song_playlist_ids_to_remove = [i.track_id for i in service_playlist_old.tracks]
         if song_playlist_ids_to_remove:
-            self.playlist_songs_remove(song_playlist_ids_to_remove)
+            self.playlist_songs_remove(service_playlist_new.service_playlist_code, song_playlist_ids_to_remove)
 
         # add new set of songs
         song_playlist_ids_to_add = []
@@ -131,7 +132,11 @@ class GoogleMusic:
             if track.track_id and track.track_id not in song_playlist_ids_to_add:
                 song_playlist_ids_to_add.append(track.track_id)
         if song_playlist_ids_to_add:
-            self.playlist_songs_add(service_playlist_new.service_playlist_code, song_playlist_ids_to_add)
+            try:
+                self.playlist_songs_add(service_playlist_new.service_playlist_code, song_playlist_ids_to_add)
+            except Exception as e:
+                self._logger.exception(f"Could not add tracks to Google Music playlist "
+                                       f"'{service_playlist_new.playlist_title}'.")
 
     def _query_song(self, item: 'Track', max_results: int = 3) -> Tuple[bool, List['Track']]:
         self._logger.debug(f"Searching Google Music for match to '{str(item)}'")
@@ -169,11 +174,35 @@ class GoogleMusic:
                     break
         return used_cache, tracks
 
-    def _get_track_id(self, track: Dict) -> Optional[str]:
+    def _get_track_id(self, data: Dict) -> Optional[str]:
         """Get the track_id for a Google Music track."""
-        track_id = track.get('storeId') or track.get('id') or track.get('trackId') or track.get('nid')
-        if track.get('track'):
-            track_data = track.get('track')
-            track_id = track_id or track_data.get('storeId') or track_data.get('id') or track_data.get(
-                'trackId') or track_data.get('nid')
-        return track_id
+        result = None
+        if data.get('track') and data.get('trackId'):
+            # playlist entry trackId
+            result = data['trackId']
+
+        elif not data.get('track') and data.get('trackId'):
+            # playlist entry trackId
+            result = data['trackId']
+
+        elif data.get('track') and data.get('track', {}).get('storeId'):
+            # store track id
+            result = data['track']['storeId']
+
+        elif not data.get('track') and data.get('storeId'):
+            # store track id
+            result = data['storeId']
+
+        elif data.get('track') and data.get('track', {}).get('storeId'):
+            # store track id
+            result = data['track']['storeId']
+
+        elif not data.get('track') and data.get('id'):
+            # uploaded track id
+            result = data['id']
+
+        elif data.get('track') and data.get('track', {}).get('id'):
+            # uploaded track id
+            result = data['track']['id']
+
+        return result
