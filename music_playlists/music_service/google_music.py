@@ -122,9 +122,12 @@ class GoogleMusic:
             public=True)
 
         # remove all old songs, then add all new songs, to keep order of songs
-        song_playlist_ids_to_remove = [i.track_id for i in service_playlist_old.tracks]
+        song_playlist_ids_to_remove = list({t.info.get('id') or t.track_id
+                                            for t in service_playlist_old.tracks if t.info.get('id') or t.track_id})
         if song_playlist_ids_to_remove:
             self.playlist_songs_remove(service_playlist_new.service_playlist_code, song_playlist_ids_to_remove)
+        else:
+            a = 1
 
         # add new set of songs
         song_playlist_ids_to_add = []

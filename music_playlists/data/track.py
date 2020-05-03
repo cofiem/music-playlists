@@ -3,8 +3,10 @@ from dataclasses import dataclass, field
 from typing import List, Any, Dict
 
 from boltons.strutils import slugify
+from dataclasses_json import dataclass_json
 
 
+@dataclass_json
 @dataclass
 class Track:
     """Details for a generic track."""

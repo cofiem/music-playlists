@@ -2,6 +2,7 @@ import json
 import logging
 from os import makedirs
 from os.path import join, isfile
+from pathlib import Path
 from typing import Optional, Dict, List, Any, Union
 
 import requests
@@ -22,6 +23,9 @@ class Downloader:
 
     cache_temp = 'cache_temp'
     cache_persisted = 'cache_persist'
+
+    def __init__(self, base_path: Path = None):
+        self._base_path = base_path or Path('.').resolve()
 
     def download_text(self, cache_name: str, url: str) -> Optional[str]:
         return self._download(cache_name, url, 'text')
@@ -86,9 +90,10 @@ class Downloader:
         return None
 
     def _cache_save(self, cache_name: str, key: str, value: Any, ext: str = 'txt') -> bool:
-        makedirs(cache_name, exist_ok=True)
+        cache_dir = str(Path(self._base_path, cache_name))
+        makedirs(cache_dir, exist_ok=True)
         item_id = self.cache_item_id(key)
-        file_path = join(cache_name, item_id + '.' + ext)
+        file_path = join(cache_dir, item_id + '.' + ext)
 
         self._logger.debug(f"Saving cache '{cache_name}' for '{key}' to '{file_path}'")
 
@@ -97,9 +102,10 @@ class Downloader:
         return True
 
     def _cache_load(self, cache_name: str, key: str, ext: str = 'txt') -> Optional[CacheEntry]:
-        makedirs(cache_name, exist_ok=True)
+        cache_dir = str(Path(self._base_path, cache_name))
+        makedirs(cache_dir, exist_ok=True)
         item_id = self.cache_item_id(key)
-        file_path = join(cache_name, item_id + '.' + ext)
+        file_path = join(cache_dir, item_id + '.' + ext)
 
         if not isfile(file_path):
             self._logger.info(f"Cache '{cache_name}' does not contain '{key}' from '{file_path}'")

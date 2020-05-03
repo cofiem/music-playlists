@@ -30,7 +30,7 @@ Generates playlists for streaming music services from various song charts.
 ### Radio 4zzz Weekly
 
 - [Playlist Source](http://4zzz.org.au/)
-- [Generated Google Music Playlist](https://play.google.com/music/playlist/AMaBXynHjqCUVHudGshhOIYUnwqDp_xZwF6Kg8U1fOpd-T90-V6xMC9HMlQ7h9AjZylAipR7QKMxOJWxtePR4cz8VezjIpONpw%3D%3D)
+- [Generated Google Music Playlist](https://play.google.com/music/playlist/AMaBXylJ3xayO9dRNgmyQazXw2KEEfiFLML8UtMng0v0lSpZRinG_1qz994rPPOc5sBDkN4QDLMxbWAZHtKMPmmfYyabzQ3SMQ%3D%3D)
 - [Generated Spotify Playlist](https://open.spotify.com/playlist/6QXfh1GEnk5WZcgk6DYeFX?si=uAW1Ui8qRN6uF_H2p4rJGQ)
 
 ### Last.fm Most Popular Weekly

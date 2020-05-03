@@ -125,30 +125,35 @@ class Radio4zzzMostPlayed:
                     else:
                         tracks[track_key] = [item]
 
-        # find the most played tracks
-        most_played_tracks = sorted([(len(v), k, v) for k, v in tracks.items() if len(v) > 1], reverse=True)
+        # find the top 50 most played tracks
+        most_played_tracks = sorted([(len(v), k, v) for k, v in tracks.items() if len(v) > 1], reverse=True)[:100]
 
         # build the source playlist tracks
         for index, most_played_track in enumerate(most_played_tracks):
+            play_count = most_played_track[0]
+            track_id = most_played_track[1]
+            track_info = most_played_track[2]
+
             source_playlist.tracks.append(Track(
-                track_id=most_played_track[1],
-                name=self._choose_value([i['track'] for i in most_played_track[2]]),
-                artists=[self._choose_value([i['artist'] for i in most_played_track[2]])],
+                track_id=track_id,
+                name=self._choose_value([i['track'] for i in track_info]),
+                artists=[self._choose_value([i['artist'] for i in track_info])],
                 info={
-                    'source_id': most_played_track[1],
-                    'is_australian': self._choose_value([i['is_australian'] for i in most_played_track[2]]),
-                    'is_local': self._choose_value([i['is_local'] for i in most_played_track[2]]),
-                    'is_female': self._choose_value([i['is_female'] for i in most_played_track[2]]),
-                    'is_indigenous': self._choose_value([i['is_indigenous'] for i in most_played_track[2]]),
-                    'is_new': self._choose_value([i['is_new'] for i in most_played_track[2]]),
-                    'releases': {i['release'] for i in most_played_track[2] if i['release']} or None,
-                    'notes': {i['notes'] for i in most_played_track[2] if i['notes']} or None,
-                    'twitters': {i['twitter'] for i in most_played_track[2] if i['twitter']} or None,
-                    'wikipedias': {i['wikipedia'] for i in most_played_track[2] if i['wikipedia']} or None,
-                    'images': {i['image'] for i in most_played_track[2] if i['image']} or None,
-                    'videos': {i['video'] for i in most_played_track[2] if i['video']} or None,
-                    'urls': {i['url'] for i in most_played_track[2] if i['url']} or None,
-                    'program_names': {i['program_name'] for i in most_played_track[2] if i['program_name']} or None,
+                    'play_count': play_count,
+                    'source_id': track_id,
+                    'is_australian': self._choose_value([i['is_australian'] for i in track_info]),
+                    'is_local': self._choose_value([i['is_local'] for i in track_info]),
+                    'is_female': self._choose_value([i['is_female'] for i in track_info]),
+                    'is_indigenous': self._choose_value([i['is_indigenous'] for i in track_info]),
+                    'is_new': self._choose_value([i['is_new'] for i in track_info]),
+                    'releases': {i['release'] for i in track_info if i['release']} or None,
+                    'notes': {i['notes'] for i in track_info if i['notes']} or None,
+                    'twitters': {i['twitter'] for i in track_info if i['twitter']} or None,
+                    'wikipedias': {i['wikipedia'] for i in track_info if i['wikipedia']} or None,
+                    'images': {i['image'] for i in track_info if i['image']} or None,
+                    'videos': {i['video'] for i in track_info if i['video']} or None,
+                    'urls': {i['url'] for i in track_info if i['url']} or None,
+                    'program_names': {i['program_name'] for i in track_info if i['program_name']} or None,
                 }))
 
         self._logger.info(f"Completed {data['title']}")

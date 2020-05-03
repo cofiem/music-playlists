@@ -1,14 +1,18 @@
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
 from time import sleep
 from typing import List, TYPE_CHECKING
+
+from dataclasses_json import dataclass_json
 
 if TYPE_CHECKING:
     from music_playlists.data.track import Track
 
 
+@dataclass_json
 @dataclass
 class ServicePlaylist:
     """An ordered list of tracks from a streaming music service."""
