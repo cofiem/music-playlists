@@ -55,9 +55,9 @@ class SoundCloudTrending:
         url = self.build_url(client_id=client_id)
 
         # download track list
-        tracks_data = self._downloader.download_json(self._downloader.cache_temp, url)
+        tracks_data = self._downloader.download_json(self._downloader.cache_temp, url) or {}
 
-        for index, item in enumerate(tracks_data['collection']):
+        for index, item in enumerate(tracks_data.get('collection', [])):
             track_title = item['track']['title']
             publisher_metadata = item['track'].get('publisher_metadata')
             if publisher_metadata and publisher_metadata.get('artist'):
