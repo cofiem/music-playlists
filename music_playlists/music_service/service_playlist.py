@@ -108,7 +108,7 @@ class ServicePlaylist:
             if not old_index:
                 self.tracks_new += 1
 
-        tracks_percent = float(self.tracks_included) / float(self.tracks_total)
+        tracks_percent = float(self.tracks_included) / float(self.tracks_total + 0.000001)
         self.playlist_description = ' '.join([
             f"This playlist is generated each day.",
             f"There are {self.tracks_included} songs of {self.tracks_total} ({tracks_percent:.0%}).",
