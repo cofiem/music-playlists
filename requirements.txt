@@ -3,5 +3,5 @@ gmusicapi==13.0.0
 boltons==20.1.0
 requests==2.23.0
 pytz==2019.3
-lxml==4.5.0
+lxml==4.6.3
 dataclasses-json==0.4.2
