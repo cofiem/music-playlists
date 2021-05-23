@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Update playlists
           command: |
-            poetry run python ./music_playlists/main.py
+            poetry run python ./music_playlists/main.py generate
       - save_cache:
           key: v1-playlists-{{ checksum "poetry.lock" }}
           paths:
