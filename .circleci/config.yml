@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   # orb docs: https://circleci.com/developer/orbs/orb/circleci/python
-  python: circleci/python@1.2
+  python: circleci/python@1.4.0
 
 workflows:
   # workflow docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -35,12 +35,8 @@ jobs:
             - v1-playlists
       - python/install-packages:
           pkg-manager: poetry
-      - run:
-          name: Run tests
-          command: coverage run -m unittest
-      - run:
-          name: Create coverage report
-          command: coverage report -m
+      - python/test:
+          pkg-manager: poetry
       - run:
           name: Update playlists
           command: |
