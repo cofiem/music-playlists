@@ -34,7 +34,7 @@ jobs:
             - v1-playlists-{{ checksum "poetry.lock" }}
             - v1-playlists
       - python/install-packages:
-          pkg-manager: pip
+          pkg-manager: poetry
       - run:
           name: Run tests
           command: coverage run -m unittest
