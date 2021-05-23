@@ -35,12 +35,16 @@ jobs:
             - v1-playlists
       - python/install-packages:
           pkg-manager: poetry
-      - python/test:
-          pkg-manager: poetry
+      - run:
+          name: Run tests
+          command: poetry run coverage run -m unittest
+      - run:
+          name: Create coverage report
+          command: poetry run coverage report -m
       - run:
           name: Update playlists
           command: |
-            python ./music_playlists/main.py
+            poetry run ./music_playlists/main.py
       - save_cache:
           key: v1-playlists-{{ checksum "poetry.lock" }}
           paths:
