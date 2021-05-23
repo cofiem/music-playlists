@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from unittest import TestCase
 
@@ -8,31 +9,28 @@ from music_playlists.music_source.radio4zzz_most_played import Radio4zzzMostPlay
 
 
 class TestMusicSourceRadio4zzzMostPlayed(TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
-        cls._downloader = Downloader(Path('.', '..', '..').resolve())
-        cls._time_zone = pytz.timezone('Australia/Brisbane')
+        cls._logger = logging.getLogger(__name__)
+        cls._downloader = Downloader(cls._logger, Path(".", "..").resolve())
+
+        cls._time_zone = pytz.timezone("Australia/Brisbane")
 
     def test_get_source_playlist(self):
-        music_source = Radio4zzzMostPlayed(self._downloader, self._time_zone)
-        sources = music_source.playlists()
+        music_source = Radio4zzzMostPlayed(
+            self._logger, self._downloader, self._time_zone
+        )
+        sources = music_source.get_playlist_tracks()
 
-        self.assertEqual(1, len(sources))
-
+        current_highest_play_count = None
         for source in sources:
-            source_playlist, service_playlists = source
-
-            # expected service playlists and source playlist length
-            self.assertEqual(2, len(service_playlists))
-            self.assertTrue(len(source_playlist.tracks) <= 100)
+            play_count = source.info.get("play_count")
+            if current_highest_play_count is None:
+                current_highest_play_count = play_count
 
             # tracks are ordered as expected
-            source_playlist_play_counts = [t.info['play_count'] for t in source_playlist.tracks]
-            for index, value in enumerate(source_playlist_play_counts):
-                if index > 0:
-                    self.assertTrue(value <= source_playlist_play_counts[index - 1],
-                                    f"{value} <= {source_playlist_play_counts[index - 1]}")
+            self.assertGreaterEqual(current_highest_play_count, play_count)
+            current_highest_play_count = play_count
 
-            # track_ids are unique
-            self.assertEqual(len(source_playlist.tracks), len([t.track_id for t in source_playlist.tracks]))
+        # track_ids are unique
+        self.assertEqual(len(sources), len(set(t.track_id for t in sources)))

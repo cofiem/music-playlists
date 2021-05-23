@@ -1,46 +1,15 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
-version: 2.0
+version: 2.1
 
-jobs:
-  update_playlists:
-    working_directory: ~/project
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
-            - v1-dependencies-{{ checksum "requirements.txt" }}
-            - v1-dependencies
-      - run:
-          name: Install dependencies
-          command: |
-            if [ ! -f ~/venv/bin/activate ]; then
-              python3 -m venv ~/venv
-            fi
-            source ~/venv/bin/activate
-            pip install -U -r requirements.txt
-      - run:
-          name: Run main script
-          command: |
-            source ~/venv/bin/activate
-            python3 ./main.py
-      - save_cache:
-          key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "main.py" }}
-          paths:
-            - ~/venv
-            - ~/project/cache_persist
+orbs:
+  # orb docs: https://circleci.com/developer/orbs/orb/circleci/python
+  python: circleci/python@1.2
 
 workflows:
-  version: 2
-  commit-workflow:
+  # workflow docs: https://circleci.com/docs/2.0/configuration-reference/#workflows
+  commit-update:
     jobs:
-      - update_playlists
-  scheduled-workflow:
+      - update-playlists
+  scheduled-update:
     triggers:
       - schedule:
           # every day at 4am AEST, 6pm (18:00) UTC
@@ -50,4 +19,33 @@ workflows:
               only:
                 - master
     jobs:
-      - update_playlists
+      - update-playlists
+
+jobs:
+  update-playlists:
+    # Docker executor docs: https://circleci.com/docs/2.0/executor-types/
+    # CircleCI Docker images: https://circleci.com/developer/images/image/cimg/python
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-playlists-{{ checksum "poetry.lock" }}
+            - v1-playlists
+      - python/install-packages:
+          pkg-manager: pip
+      - run:
+          name: Run tests
+          command: coverage run -m unittest
+      - run:
+          name: Create coverage report
+          command: coverage report -m
+      - run:
+          name: Update playlists
+          command: |
+            python ./music_playlists/main.py
+      - save_cache:
+          key: v1-playlists-{{ checksum "poetry.lock" }}
+          paths:
+            - ~/project/music_playlists/cache_persist

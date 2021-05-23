@@ -1,15 +1,14 @@
-from dataclasses import dataclass, field
-from typing import List, TYPE_CHECKING
+from typing import Optional, List
 
-from dataclasses_json import dataclass_json
-
-if TYPE_CHECKING:
-    from music_playlists.data.track import Track
+from music_playlists.track import Track
 
 
-@dataclass_json
-@dataclass
 class SourcePlaylist:
-    """An ordered list of tracks from a music playlist source."""
-    playlist_name: str
-    tracks: List['Track'] = field(default_factory=list)
+    """Retrieves tracks in a source playlist."""
+
+    code = None
+    title = None
+
+    def get_playlist_tracks(self, limit: Optional[int] = None) -> List[Track]:
+        """Get the tracks in the source playlist."""
+        raise NotImplementedError()

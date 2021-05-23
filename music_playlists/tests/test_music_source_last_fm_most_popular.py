@@ -1,3 +1,5 @@
+import logging
+import os
 from pathlib import Path
 from unittest import TestCase
 
@@ -8,31 +10,22 @@ from music_playlists.music_source.last_fm_most_popular import LastFmMostPopular
 
 
 class TestMusicSourceLastFmMostPopular(TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
-        cls._downloader = Downloader(Path('.', '..', '..').resolve())
-        cls._time_zone = pytz.timezone('Australia/Brisbane')
+        cls._logger = logging.getLogger(__name__)
+        cls._downloader = Downloader(cls._logger, Path(".", "..").resolve())
 
     def test_get_source_playlist(self):
-        music_source = LastFmMostPopular(self._downloader, self._time_zone)
-        sources = music_source.playlists()
+        music_source = LastFmMostPopular(
+            self._logger, self._downloader, os.getenv("LASTFM_AUTH_API_KEY")
+        )
+        sources = music_source.get_playlist_tracks()
 
-        self.assertEqual(1, len(sources))
+        self.assertEqual(50, len(sources))
 
-        for source in sources:
-            source_playlist, service_playlists = source
-
-            # expected service playlists and source playlist length
-            self.assertEqual(2, len(service_playlists))
-            self.assertTrue(len(source_playlist.tracks) <= 100)
-
+        for index, source in enumerate(sources):
             # tracks are ordered as expected
-            source_playlist_rank = [t.info['@attr']['rank'] for t in source_playlist.tracks]
-            for index, value in enumerate(source_playlist_rank):
-                if index > 0:
-                    self.assertTrue(int(value) > int(source_playlist_rank[index - 1]),
-                                    f"{value} > {source_playlist_rank[index - 1]}")
+            self.assertEqual(index, int(source.info.get("@attr").get("rank")))
 
-            # track_ids are unique
-            self.assertEqual(len(source_playlist.tracks), len([t.track_id for t in source_playlist.tracks]))
+        # track_ids are unique
+        self.assertEqual(len(sources), len(set(t.track_id for t in sources)))

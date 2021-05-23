@@ -3,15 +3,14 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from urllib.parse import urlencode
 
-
 from music_playlists.downloader import Downloader
 from music_playlists.music_source.source_playlist import SourcePlaylist
 from music_playlists.track import Track
 
 
-class TripleJMostPlayed(SourcePlaylist):
-    code = "triple_j_most_played"
-    title = "Triple J Most Played Daily"
+class DoubleJMostPlayed(SourcePlaylist):
+    code = "double_j_most_played"
+    title = "Double J Most Played Daily"
 
     def __init__(
         self, logger: logging.Logger, downloader: Downloader, time_zone: datetime.tzinfo
@@ -31,7 +30,7 @@ class TripleJMostPlayed(SourcePlaylist):
         current_day = current_time.date()
 
         url = self.build_url(
-            "triplej",
+            "doublej",
             date_from=current_day - timedelta(days=8),
             date_to=current_day - timedelta(days=1),
         )
@@ -74,7 +73,6 @@ class TripleJMostPlayed(SourcePlaylist):
                     title,
                     artists,
                     {
-                        "artists": artists,
                         "source_id": track_id,
                         "source_order": index + 1,
                         "original_track": title,
@@ -84,8 +82,10 @@ class TripleJMostPlayed(SourcePlaylist):
             )
 
         self._logger.info(f"Completed {self.title} with {len(result)} tracks.")
+
         if limit is not None and 0 < limit < len(result):
             result = result[:limit]
+
         return result
 
     def build_url(self, service, date_from, date_to, order="desc", limit="50"):

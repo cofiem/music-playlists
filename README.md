@@ -1,6 +1,6 @@
 # Music Playlists
 
-Generates playlists for streaming music services from various song charts.
+Generates streaming music playlists create from various song charts.
 
 [![CircleCI](https://circleci.com/gh/cofiem/music-playlists/tree/master.svg?style=svg)](https://circleci.com/gh/cofiem/music-playlists/tree/master)
 
@@ -8,60 +8,105 @@ Generates playlists for streaming music services from various song charts.
 
 ### Triple J Unearthed Weekly
 
-- [Playlist Source](https://www.triplejunearthed.com/discover/charts)
-- [Generated Google Music Playlist](https://play.google.com/music/playlist/AMaBXykfhR3K2N58JDfwGMt4-CHPpR21_sybQveOb2g5vnmXPoL2RxuJSnXwDBv_a0BhN3eT7Iy1QRkVtcIzuB79oTrkvfbOBA%3D%3D)
-- [Generated Spotify Playlist](https://open.spotify.com/playlist/1Fi0e7Bwof3ZZYKiTqIFeG?si=oRAHLVk_RCiuHfIPOBwQow)
-- [Similar Spotify Playlist by Triple J](https://open.spotify.com/playlist/78d1cKN9xYtKialnOYkI92?si=oplGx5CuRpO2sTUiQnrDsQ)
+[Playlist Source](https://www.triplejunearthed.com/discover/charts)
+
+YouTube Music
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflWEJroa8S-ICu4YNzVFQiVl)
+- [Similar YouTube Music Playlist](https://music.youtube.com/playlist?list=PLFqO_oqoHHMwqcf99e0zeht2Gm0eOmrQx)
+
+Spotify
+
+- [Generated Spotify Playlist](https://open.spotify.com/playlist/1Fi0e7Bwof3ZZYKiTqIFeG)
+- [Similar Spotify Playlist by Triple J](https://open.spotify.com/playlist/78d1cKN9xYtKialnOYkI92)
 
 ### Triple J Most Played Daily
 
-- [Playlist Source](https://www.abc.net.au/triplej/featured-music/most-played/)
-- [Generated Google Music Playlist](https://play.google.com/music/playlist/AMaBXymNn6HXtD6yk3Jw7NCw-bWtU3KfqtGNEvF7zGuzopDBEWO0ZDkiRdH2ryGRNMACIf_jfcHgBlvaU3_yDE1ZLRC8HZi-nA%3D%3D)
-- [Generated Spotify Playlist](https://open.spotify.com/playlist/6fk0j4ncAVZgR0BGXgnoQP?si=-MikM58CSIuVclL2fJT5ag)
-- [Similar Spotify Playlist by Triple J](https://open.spotify.com/playlist/7vFQNWXoblEJXpbnTuyz76?si=Tvc6fZQYSbqJf6LL2HsgnA)
+[Playlist Source](https://www.abc.net.au/triplej/featured-music/most-played/)
+
+YouTube Music
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflXb3R7YIKDtJf015kzwSocB)
+- [Similar YouTube Music Playlist](https://music.youtube.com/playlist?list=PLFqO_oqoHHMw8xPXfm2-SOrwXPEHSqoOf)
+
+Spotify
+
+- [Generated Spotify Playlist](https://open.spotify.com/playlist/6fk0j4ncAVZgR0BGXgnoQP)
+- [Similar Spotify Playlist by Triple J](https://open.spotify.com/playlist/7vFQNWXoblEJXpbnTuyz76)
 
 ### Double J Most Played Daily
 
-- [Playlist Source](https://www.abc.net.au/doublej/featured-music/most-played/)
-- [Generated Google Music Playlist](https://play.google.com/music/playlist/AMaBXyngnVFOVBFpxZS2b8M3DTQk8Ub9aUoSaohDL0UsE00z_Y-2H7_KuX1u_Cy7QTnCUPDVTXSlSSXoJS4sVVpOmnKJXDZwBQ%3D%3D)
-- [Generated Spotify Playlist](https://open.spotify.com/playlist/5pMHkM6y47xeqKstXTxe5l?si=lDCE4P0nTOiyfF5AaNiCig)
-- [Similar Spotify Playlist by Double J](https://open.spotify.com/playlist/3eVaP90RyWrOKu6Gejw5Eg?si=qitVGp0PQJ-8wm92WTacqg)
+[Playlist Source](https://www.abc.net.au/doublej/featured-music/most-played/)
+
+YouTube Music
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflUUImfAqq7Y5kxliC5MZz8C)
+
+Spotify
+
+- [Generated Spotify Playlist](https://open.spotify.com/playlist/5pMHkM6y47xeqKstXTxe5l)
+- [Similar Spotify Playlist by Double J](https://open.spotify.com/playlist/3eVaP90RyWrOKu6Gejw5Eg)
 
 ### Radio 4zzz Weekly
 
-- [Playlist Source](http://4zzz.org.au/)
-- [Generated Google Music Playlist](https://play.google.com/music/playlist/AMaBXylJ3xayO9dRNgmyQazXw2KEEfiFLML8UtMng0v0lSpZRinG_1qz994rPPOc5sBDkN4QDLMxbWAZHtKMPmmfYyabzQ3SMQ%3D%3D)
-- [Generated Spotify Playlist](https://open.spotify.com/playlist/6QXfh1GEnk5WZcgk6DYeFX?si=uAW1Ui8qRN6uF_H2p4rJGQ)
+[Playlist Source](http://4zzz.org.au/)
+
+YouTube Music
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflVHDZXI5t0RV0zCl0kdYxTq)
+
+Spotify
+
+- [Generated Spotify Playlist](https://open.spotify.com/playlist/6QXfh1GEnk5WZcgk6DYeFX)
 
 ### Last.fm Most Popular Weekly
 
-- [Playlist Source](https://www.last.fm/charts)
-- [Generated Google Music Playlist](https://play.google.com/music/listen?u=0#/pl/AMaBXymCyYTfzBUMrhxu-gmv105W0p50bursBWRXeH3KlPeAGdBsrsth4wfAd_gJo1RK0BWRcO1fCmrwTazI5_WQsLn4xpzQKQ%3D%3D)
-- [Generated Spotify Playlist](https://open.spotify.com/playlist/2OG0mxQqwQ4y26f7lrFv7z?si=GcMN5TDASjm_tG0N5vaG6A)
+[Playlist Source](https://www.last.fm/charts)
+
+YouTube Music
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflWOVUsXTbIezz7JKWbvDU14)
+
+Spotify
+
+- [Generated Spotify Playlist](https://open.spotify.com/playlist/2OG0mxQqwQ4y26f7lrFv7z)
 
 ### SoundCloud Trending Australia Weekly
 
-- [Playlist Source](https://soundcloud.com/charts/new?genre=all-music&country=AU)
-- [Generated Google Music Playlist](https://play.google.com/music/listen?u=0#/pl/AMaBXym36AMhKosMhuNHEZugZB9Vmcp4H6X_gH22EBufF0_gWunMqjeZR7SiHVouyccPFUnCEygbxFutkRbUKhl0hIjhCUamRw%3D%3D)
-- [Generated Spotify Playlist](https://open.spotify.com/playlist/5nBtYkUuLlbfOWc0Jy4s2E?si=dedwtEUeTxaFQCQM_8db1A)
+Not available due to [Soundcloud closing access to API keys](https://github.com/soundcloud/api).
 
+[Playlist Source](https://soundcloud.com/charts/new?genre=all-music&country=AU)
+
+YouTube Music
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflVpfo0OvLXqvoynQMHon0ve)
+
+Spotify
+
+- [Generated Spotify Playlist](https://open.spotify.com/playlist/5nBtYkUuLlbfOWc0Jy4s2E)
+
+### Other playlists
+
+- [Guardian Australia Monthly New Music](https://www.theguardian.com/music/series/australias-best-new-music):
+  [Spotify](https://open.spotify.com/playlist/5Cw9qgG1EaqvJYYdhGC8JJ)
 
 ## Script Setup
 
 The script requires some environment variables to run.
 
-### Google Music
+- `PLAYLIST_TIME_ZONE` - Set the time zone for dates, particularly the generated playlists.
 
-- `GOOGLE_MUSIC_AUTH_DEVICE_ID` - the device id from running gmusicapi 
-    [`Mobileclient.perform_oauth`](https://unofficial-google-music-api.readthedocs.io/en/latest/reference/mobileclient.html#gmusicapi.clients.Mobileclient.perform_oauth)
-- `GOOGLE_MUSIC_AUTH_CONFIG` - the contents of the mobileclient config file
-- The Google Music playlist ids:
-    - `GOOGLE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED`
-    - `GOOGLE_MUSIC_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED`
-    - `GOOGLE_MUSIC_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED`
-    - `GOOGLE_MUSIC_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED`
-    - `GOOGLE_MUSIC_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS`
-    - `GOOGLE_MUSIC_PLAYLIST_ID_SOUNDCLOUD_TRENDING_AUS`
+### YouTube Music
+
+- `YOUTUBE_MUSIC_AUTH_CONFIG` - the contents of the `headers_auth.json` config file 
+  from [these instructions](https://ytmusicapi.readthedocs.io/en/latest/setup.html)
+- The YouTube Music playlist ids:
+    - `YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED`
+    - `YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED`
+    - `YOUTUBE_MUSIC_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED`
+    - `YOUTUBE_MUSIC_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED`
+    - `YOUTUBE_MUSIC_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS`
+    - `YOUTUBE_MUSIC_PLAYLIST_ID_SOUNDCLOUD_TRENDING_AUS`
 
 
 ### Spotify
@@ -96,4 +141,4 @@ This is not a great thing to do for web services. There is the possibility to ca
 
 Change the cache setting in the Downloader in `main.py`.
 
-With thanks to Simon Weber for [gmusicapi](https://github.com/simon-weber/gmusicapi).
+With thanks to sigma67 for [ytmusicapi](https://github.com/sigma67/ytmusicapi).

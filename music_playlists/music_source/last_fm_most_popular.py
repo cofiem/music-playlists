@@ -1,86 +1,67 @@
 import logging
-import os
-from datetime import datetime
-from typing import Any, List, Dict, Tuple
+from typing import List, Optional
 from urllib.parse import urlencode
 
-from music_playlists.data.track import Track
+
 from music_playlists.downloader import Downloader
-from music_playlists.music_service.google_music import GoogleMusic
-from music_playlists.music_service.service_playlist import ServicePlaylist
-from music_playlists.music_service.spotify import Spotify
 from music_playlists.music_source.source_playlist import SourcePlaylist
+from music_playlists.track import Track
 
 
-class LastFmMostPopular:
-    _logger = logging.getLogger(__name__)
+class LastFmMostPopular(SourcePlaylist):
+    code = "lastfm_most_popular"
+    title = "Last.fm Most Popular Weekly"
 
-    available = [
-        {
-            'title': 'Last.fm Most Popular Weekly',
-            'source_url': 'https://www.last.fm/charts',
-            'services': {
-                GoogleMusic.CODE: 'GOOGLE_MUSIC_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS',
-                Spotify.CODE: 'SPOTIFY_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS',
-            }
-        }
-    ]
-
-    def __init__(self, downloader: Downloader, time_zone: datetime.tzinfo):
+    def __init__(self, logger: logging.Logger, downloader: Downloader, api_key: str):
+        self._logger = logger
         self._downloader = downloader
-        self._time_zone = time_zone
+        self._api_key = api_key
+        self._url = "https://ws.audioscrobbler.com/2.0/?{qs}"
 
-        self._url = 'https://ws.audioscrobbler.com/2.0/?{qs}'
-
-    def playlists(self):
-        result = []
-        for item in self.available:
-            result.append(self.playlist(item))
-        return result
-
-    def playlist(self, data: Dict[str, Any]) -> Tuple[SourcePlaylist, List[ServicePlaylist]]:
-        self._logger.info(f"Started '{data['title']}'")
-
-        # create source playlist and service playlists
-        source_playlist = SourcePlaylist(playlist_name=data['title'])
-        service_playlists = []
-        for k, v in data['services'].items():
-            service_playlists.append(ServicePlaylist(
-                playlist_name=data['title'],
-                service_name=k,
-                service_playlist_env_var=v))
+    def get_playlist_tracks(self, limit: Optional[int] = None) -> List[Track]:
+        self._logger.info(f"Started {self.title}.")
 
         # get content
-        api_key = os.getenv('LASTFM_AUTH_API_KEY')
-        url = self.build_url(api_key=api_key)
+        url = self.build_url(api_key=self._api_key)
 
         # download track list
         tracks_data = self._downloader.download_json(self._downloader.cache_temp, url)
 
-        for index, item in enumerate(tracks_data['tracks']['track']):
-            source_playlist.tracks.append(Track(
-                track_id=item.get('url'),
-                name=item['name'],
-                artists=[item['artist']['name']],
-                info=item))
+        result = []
+        for index, item in enumerate(tracks_data["tracks"]["track"]):
+            result.append(
+                Track.create(
+                    self.code,
+                    item.get("url"),
+                    item["name"],
+                    [item["artist"]["name"]],
+                    item,
+                )
+            )
 
-        self._logger.info(f"Completed '{data['title']}'")
-        return source_playlist, service_playlists
+        self._logger.info(f"Completed {self.title} with {len(result)} tracks.")
+        if limit is not None and 0 < limit < len(result):
+            result = result[:limit]
+        return result
 
-    def build_url(self, api_key: str,
-                  method: str = 'geo.gettoptracks',
-                  country: str = 'australia',
-                  format: str = 'json',
-                  limit: bool = '50',
-                  page: str = '1'
-                  ):
-        qs = urlencode({
-            'api_key': api_key,
-            'method': method,
-            'country': country,
-            'format': format,
-            'limit': limit,
-            'page': page,
-        })
+    def build_url(
+        self,
+        api_key: str,
+        method: str = "geo.gettoptracks",
+        country: str = "australia",
+        output_format: str = "json",
+        limit: bool = "50",
+        page: str = "1",
+    ):
+        qs = urlencode(
+            {
+                "api_key": api_key,
+                "method": method,
+                "country": country,
+                "format": output_format,
+                "limit": limit,
+                "page": page,
+            }
+        )
         url = self._url.format(qs=qs)
         return url
