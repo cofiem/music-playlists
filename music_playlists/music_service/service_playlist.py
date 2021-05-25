@@ -1,6 +1,6 @@
 from datetime import datetime
 from time import sleep
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from boltons.strutils import slugify
 
@@ -42,7 +42,7 @@ class ServicePlaylist:
         title: str = None,
         description: str = None,
         is_public: bool = None,
-    ):
+    ) -> bool:
         """
         Update the playlist details.
 
@@ -115,6 +115,7 @@ class ServicePlaylist:
         self,
         tracks_current: List[Track],
         tracks_new: List[Track],
+        playlist_info: list[dict[str, Any]],
         time_zone: datetime.tzinfo,
     ):
         tracks_add = []
@@ -127,12 +128,23 @@ class ServicePlaylist:
         tracks_up = 0
         tracks_down = 0
 
-        for source_track in tracks_new:
+        for source_index, source_track in enumerate(tracks_new):
+
+            if len(playlist_info) <= source_index:
+                playlist_info.append(
+                    {
+                        "title": source_track.title,
+                        "artists": source_track.artists,
+                        "position": source_index + 1,
+                    }
+                )
+
             found_track = None
 
-            for service_track in tracks_current:
+            for service_index, service_track in enumerate(tracks_current):
                 if self.is_match(source_track, service_track):
                     found_track = service_track
+                    playlist_info[source_index][service_track.origin_code] = True
                     break
 
             if not found_track:
@@ -146,6 +158,9 @@ class ServicePlaylist:
                     for available_track in current_available_tracks:
                         if self.is_match(source_track, available_track):
                             found_track = available_track
+                            playlist_info[source_index][
+                                available_track.origin_code
+                            ] = True
                             break
 
                 if not found_track:

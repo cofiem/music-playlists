@@ -31,7 +31,6 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-playlists-{{ checksum "poetry.lock" }}
             - v1-playlists
       - python/install-packages:
           pkg-manager: poetry
@@ -46,6 +45,8 @@ jobs:
           command: |
             poetry run python ./music_playlists/main.py generate
       - save_cache:
-          key: v1-playlists-{{ checksum "poetry.lock" }}
+          key: v1-playlists-{{ epoch }}
           paths:
             - ~/project/music_playlists/cache_persist
+      - store_artifacts:
+          path: ~/project/output/index.html

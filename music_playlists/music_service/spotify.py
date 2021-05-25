@@ -46,7 +46,7 @@ class Spotify(ServicePlaylist):
     def get_playlist_tracks(
         self, playlist_id: str, limit: Optional[int] = None
     ) -> List[Track]:
-        self._logger.info(f"Getting tracks for Spotify playlist '{playlist_id}'.")
+        self._logger.info(f"Getting tracks for Spotify playlist.")
         status, content = self._client.get_playlist_tracks(playlist_id, limit)
         result = []
         for item in content.get("items", []):
@@ -66,9 +66,7 @@ class Spotify(ServicePlaylist):
     def set_playlist_tracks(
         self, playlist_id: str, new_tracks: List[Track], old_tracks: List[Track]
     ) -> bool:
-        self._logger.info(
-            f"Setting {len(new_tracks)} tracks for Spotify playlist '{playlist_id}'."
-        )
+        self._logger.info(f"Setting {len(new_tracks)} tracks for Spotify playlist.")
         status, content = self._client.set_playlist_tracks(
             playlist_id, [t.track_id for t in new_tracks]
         )
@@ -81,7 +79,7 @@ class Spotify(ServicePlaylist):
         description: str = None,
         is_public: bool = None,
     ):
-        self._logger.info(f"Setting details for Spotify playlist '{playlist_id}'.")
+        self._logger.info(f"Setting details for Spotify playlist '{title}'.")
         status, content = self._client.set_playlist_details(
             playlist_id, title, description, is_public
         )

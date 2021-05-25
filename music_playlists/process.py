@@ -1,8 +1,9 @@
+import importlib.resources
 import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Any
 
 import pytz
 
@@ -16,7 +17,6 @@ from music_playlists.music_source.radio4zzz_most_played import Radio4zzzMostPlay
 from music_playlists.music_source.source_playlist import SourcePlaylist
 from music_playlists.music_source.triplej_most_played import TripleJMostPlayed
 from music_playlists.music_source.triplej_unearthed_chart import TripleJUnearthedChart
-from music_playlists.track import Track
 
 
 class Process:
@@ -109,6 +109,8 @@ class Process:
             YouTubeMusic.code: self._youtube_music,
         }  # type: dict[str, ServicePlaylist]
 
+        playlists_info = {}
+
         playlist_ids = settings.get("playlists", {})  # type: dict[str, dict[str, str]]
         for service_code, playlists in playlist_ids.items():
             service = services[service_code]
@@ -116,7 +118,30 @@ class Process:
 
                 cache_name = self._downloader.cache_persisted
                 cache_key = "-".join([service_code, playlist_code])
+
+                playlist_id = self._get_setting(playlists, playlist_code)
+                tracks_current = service.get_playlist_tracks(playlist_id)
+                tracks_source = source_playlists.get(playlist_code)
+                tracks_new = tracks_source.get_playlist_tracks(limit)
+                if not tracks_new:
+                    self._logger.warning(
+                        f"Skipping playlist '{playlist_code}' for '{service_code}' as there are no new tracks."
+                    )
+                    continue
+
+                if tracks_source.title not in playlists_info:
+                    playlists_info[tracks_source.title] = []
+
+                tracks_add, description = service.build_new_playlist(
+                    tracks_current,
+                    tracks_new,
+                    playlists_info[tracks_source.title],
+                    self._time_zone,
+                )
+
                 last_updated = self._downloader.retrieve_object(cache_name, cache_key)
+                # update the cached datetime after reading it
+                self._downloader.store_object(cache_name, cache_key, datetime_now)
                 if last_updated:
                     cache_value = last_updated.get_value()
                     hours_ago = 6
@@ -130,31 +155,23 @@ class Process:
                         )
                         continue
 
-                playlist_id = self._get_setting(playlists, playlist_code)
-                tracks_current = service.get_playlist_tracks(playlist_id)
-                tracks_source = source_playlists.get(playlist_code)
-                tracks_new = tracks_source.get_playlist_tracks(limit)
-                if not tracks_new:
-                    self._logger.warning(
-                        f"Skipping playlist '{playlist_code}' for '{service_code}' as there are no new tracks."
-                    )
-                    continue
-
-                tracks_add, description = service.build_new_playlist(
-                    tracks_current, tracks_new, self._time_zone
-                )
-                service.set_playlist_details(
+                result = service.set_playlist_details(
                     playlist_id, tracks_source.title, description, is_public=True
                 )
+                if not result:
+                    self._logger.error(
+                        f"Error updating playlist details '{playlist_code}' for '{service_code}'."
+                    )
+
                 result = service.set_playlist_tracks(
                     playlist_id, tracks_add, tracks_current
                 )
                 if not result:
                     self._logger.error(
-                        f"Error updating playlist '{playlist_code}' for '{service_code}'."
+                        f"Error updating playlist tracks '{playlist_code}' for '{service_code}'."
                     )
 
-                self._downloader.store_object(cache_name, cache_key, datetime_now)
+        self._render_html(playlists_info)
 
         self._logger.info("Finished updating music playlists")
 
@@ -272,3 +289,73 @@ class Process:
         else:
             raise ValueError("YouTube Music is in an unknown state.")
         return youtube_music
+
+    def _render_html(self, data: dict[str, list[dict[str, Any]]]):
+        # read the html template
+        placeholder = "REPLACE_ME"
+        package = "music_playlists.report"
+        resource = "index.template.html"
+        template = importlib.resources.read_text(package, resource)
+
+        cache_name = self._downloader.cache_persisted
+        cache_key = "render-html-playlist-report"
+        previous_data = self._downloader.retrieve_object(cache_name, cache_key)
+        # store new data
+        self._downloader.store_object(cache_name, cache_key, data)
+
+        # calculate position change
+        if previous_data and previous_data.get_value():
+            previous_pls = previous_data.get_value()
+            for playlist_title, tracks in data.items():
+                previous_tracks = previous_pls[playlist_title]
+                for current_index, current_track in enumerate(tracks):
+                    for previous_index, previous_track in enumerate(previous_tracks):
+                        current_title = current_track.get("title")
+                        previous_title = previous_track.get("title")
+                        current_artists = current_track.get("artists")
+                        previous_artists = previous_track.get("artists")
+                        if (
+                            current_title == previous_title
+                            and current_artists == previous_artists
+                        ):
+                            pos_change = (current_index + 1) - (previous_index + 1)
+                            current_track["position_change"] = pos_change
+                            break
+                    if current_track.get("position_change"):
+                        break
+
+        # e.g.
+        #             new Playlist("Annabelle", [
+        #                 new Track("Arnie", "Anders", -1, "test1", null),
+        #                 new Track("Betty", "Bobby", 2, null, "test2"),
+        #                 new Track("Cate", "Carmen", 1, "test3_1", "test3_2"),
+        #             ]),
+        #             new Playlist("Scott", [
+        #                 new Track("Wayward", "One", -1, null, "test1"),
+        #                 new Track("Eight", "Twenty", 2, "test2", "test2"),
+        #                 new Track("Steve", "Vibe", 0, "test3_1", null),
+        #                 new Track("New", "Item", null, "test4_1", null)
+        #             ])
+        #
+        content = ""
+        for playlist_title, tracks in data.items():
+            content += f'new Playlist("{playlist_title}", [' + os.linesep
+            for track in tracks:
+                title = track.get("title")
+                artists = ", ".join(track.get("artists"))
+                change = track.get("position_change")
+                change = "null" if change is None else change
+                spotify = "true" if track.get(Spotify.code) else "false"
+                ytmusic = "true" if track.get(YouTubeMusic.code) else "false"
+                content += (
+                    f'new Track("{title}", "{artists}", {change}, {spotify}, {ytmusic}),'
+                    + os.linesep
+                )
+            content += "])," + os.linesep
+
+        output = template.replace(placeholder, content)
+        with importlib.resources.path(package, resource) as p:
+            output_path = p.parent.parent.parent / "output" / "index.html"
+            output_path.parent.mkdir(exist_ok=True, parents=True)
+            output_path.write_text(output, encoding="utf-8")
+        return True

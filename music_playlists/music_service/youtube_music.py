@@ -44,7 +44,7 @@ class YouTubeMusic(ServicePlaylist):
     def get_playlist_tracks(
         self, playlist_id: str, limit: Optional[int] = None
     ) -> List[Track]:
-        self._logger.debug(f"Retrieving tracks for playlist id '{playlist_id}'.")
+        self._logger.info(f"Retrieving tracks for YouTube Music playlist.")
         if limit is None:
             raw = self._client.get_playlist(playlist_id)
         else:
@@ -66,8 +66,8 @@ class YouTubeMusic(ServicePlaylist):
     def set_playlist_tracks(
         self, playlist_id: str, new_tracks: List[Track], old_tracks: List[Track]
     ) -> bool:
-        self._logger.debug(
-            f"Setting {len(new_tracks)} tracks for playlist id '{playlist_id}'."
+        self._logger.info(
+            f"Setting {len(new_tracks)} tracks for YouTube Music playlist."
         )
         if old_tracks:
             result = self._client.remove_playlist_items(
@@ -101,7 +101,7 @@ class YouTubeMusic(ServicePlaylist):
         description: str = None,
         is_public: bool = None,
     ):
-        self._logger.debug(f"Setting playlist details for id '{playlist_id}'.")
+        self._logger.info(f"Setting details for YouTube Music playlist '{title}'.")
         result = self._client.edit_playlist(
             playlistId=playlist_id,
             title=title,
