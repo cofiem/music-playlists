@@ -13,12 +13,15 @@ class TestMusicSourceTripleJUnearthedChart(TestCase):
     def setUpClass(cls) -> None:
         cls._logger = logging.getLogger(__name__)
         cls._downloader = Downloader(cls._logger, Path(".", "..").resolve())
+        cls._time_zone = pytz.timezone("Australia/Brisbane")
 
     def test_get_source_playlist(self):
-        music_source = TripleJUnearthedChart(self._logger, self._downloader)
+        music_source = TripleJUnearthedChart(
+            self._logger, self._downloader, self._time_zone
+        )
         sources = music_source.get_playlist_tracks()
 
-        self.assertEqual(100, len(sources))
+        self.assertEqual(50, len(sources))
 
         for index, source in enumerate(sources):
             # tracks are ordered as expected

@@ -19,8 +19,6 @@ class LastFmMostPopular(SourcePlaylist):
         self._url = "https://ws.audioscrobbler.com/2.0/?{qs}"
 
     def get_playlist_tracks(self, limit: Optional[int] = None) -> List[Track]:
-        self._logger.info(f"Started {self.title}.")
-
         # get content
         url = self.build_url(api_key=self._api_key)
 
@@ -39,7 +37,7 @@ class LastFmMostPopular(SourcePlaylist):
                 )
             )
 
-        self._logger.info(f"Completed {self.title} with {len(result)} tracks.")
+        self._logger.info(f"Retrieved {self.title} with {len(result)} tracks.")
         if limit is not None and 0 < limit < len(result):
             result = result[:limit]
         return result

@@ -24,8 +24,6 @@ class TripleJMostPlayed(SourcePlaylist):
         self._time_zone = time_zone
 
     def get_playlist_tracks(self, limit: Optional[int] = None) -> List[Track]:
-        self._logger.info(f"Started {self.title}.")
-
         # build dates for urls
         current_time = datetime.now(tz=self._time_zone)
         current_day = current_time.date()
@@ -83,7 +81,7 @@ class TripleJMostPlayed(SourcePlaylist):
                 )
             )
 
-        self._logger.info(f"Completed {self.title} with {len(result)} tracks.")
+        self._logger.info(f"Retrieved {self.title} with {len(result)} tracks.")
         if limit is not None and 0 < limit < len(result):
             result = result[:limit]
         return result

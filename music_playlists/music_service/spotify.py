@@ -13,9 +13,7 @@ class Spotify(ServicePlaylist):
     code = "spotify"
 
     def __init__(self, logger: logging.Logger, downloader: Downloader, time_zone):
-        self._logger = logger
-        self._time_zone = time_zone
-        self._downloader = downloader
+        super().__init__(logger, downloader, time_zone)
         self._client = None  # type: Optional[SpotifyClient]
 
     def login_init(self, client_id: str, client_secret: str):
@@ -46,7 +44,7 @@ class Spotify(ServicePlaylist):
     def get_playlist_tracks(
         self, playlist_id: str, limit: Optional[int] = None
     ) -> List[Track]:
-        self._logger.info(f"Getting tracks for Spotify playlist.")
+        self._logger.info(f"Retrieving tracks for Spotify playlist.")
         status, content = self._client.get_playlist_tracks(playlist_id, limit)
         result = []
         for item in content.get("items", []):

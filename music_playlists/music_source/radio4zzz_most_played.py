@@ -22,8 +22,6 @@ class Radio4zzzMostPlayed(SourcePlaylist):
         self._time_zone = time_zone
 
     def get_playlist_tracks(self, limit: Optional[int] = None) -> List[Track]:
-        self._logger.info(f"Started {self.title}.")
-
         # build dates for urls
         current_time = datetime.now(tz=self._time_zone)
         date_from = current_time - timedelta(days=7)
@@ -139,7 +137,7 @@ class Radio4zzzMostPlayed(SourcePlaylist):
             artists = [info.get("artist")]
             result.append(Track.create(self.code, track_id, title, artists, info))
 
-        self._logger.info(f"Completed {self.title} with {len(result)} tracks.")
+        self._logger.info(f"Retrieved {self.title} with {len(result)} tracks.")
         if limit is not None and 0 < limit < len(result):
             result = result[:limit]
         return result

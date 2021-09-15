@@ -43,8 +43,6 @@
                     <th scope="col">#</th>
                     <th scope="col">Track</th>
                     <th scope="col">Artist(s)</th>
-                    <th scope="col">Change</th>
-                    <th scope="col">Move</th>
                     <th scope="col">Spotify</th>
                     <th scope="col">YouTube Music</th>
                 </tr>
@@ -54,13 +52,6 @@
                     <th scope="row" data-bind="text: $index() + 1"></th>
                     <td data-bind="text: title"></td>
                     <td data-bind="text: artists"></td>
-                    <td data-bind="text: change"></td>
-                    <td>
-                        <i role="img" style="font-size: 1.2rem;" data-bind="attr: {'aria-label': change},
-                            class: positionClass(), style: {color: positionColor() }"></i>
-                        <span style="font-size: 1.2rem;"
-                              data-bind="text: positionAbs, style: {color: positionColor() }"></span>
-                    </td>
                     <td>
                         <i class="bi-check-square-fill" role="img" aria-label="Yes"
                            style="font-size: 1.2rem; color: darkgreen;" data-bind="visible: spotify() === true"></i>
@@ -101,58 +92,12 @@
         self.tracks = ko.observableArray(tracks);
     };
 
-    const Track = function (title, artists, position, spotify, ytmusic) {
+    const Track = function (title, artists, spotify, ytmusic) {
         const self = this;
         self.title = ko.observable(title);
         self.artists = ko.observable(artists);
-        self.position = ko.observable(position);
         self.spotify = ko.observable(spotify);
         self.ytmusic = ko.observable(ytmusic);
-
-        self.positionAbs = ko.computed(function () {
-            const p = self.position();
-            if (p === null) {
-                return '';
-            } else {
-                return Math.abs(p);
-            }
-        });
-        self.change = ko.computed(function () {
-            const p = self.position();
-            if (p === 0) {
-                return 'stable';
-            } else if (p > 0) {
-                return 'up';
-            } else if (p < 0) {
-                return 'down';
-            } else {
-                return 'new'
-            }
-        });
-        self.positionClass = ko.computed(function () {
-            const p = self.position();
-            if (p === 0) {
-                return 'bi-dash';
-            } else if (p > 0) {
-                return 'bi-caret-up-fill';
-            } else if (p < 0) {
-                return 'bi-caret-down-fill';
-            } else {
-                return 'bi-plus';
-            }
-        });
-        self.positionColor = ko.computed(function () {
-            const p = self.position();
-            if (p === 0) {
-                return 'steelblue';
-            } else if (p > 0) {
-                return 'darkgreen';
-            } else if (p < 0) {
-                return 'darkred';
-            } else {
-                return 'darkgrey';
-            }
-        });
     }
 
     const viewModel = {

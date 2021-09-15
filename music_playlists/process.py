@@ -194,7 +194,7 @@ class Process:
 
         double_j = DoubleJMostPlayed(logger, downloader, time_zone)
         triple_j = TripleJMostPlayed(logger, downloader, time_zone)
-        triple_j_unearthed = TripleJUnearthedChart(self._logger, downloader)
+        unearthed = TripleJUnearthedChart(logger, downloader, time_zone)
 
         spotify = self._get_spotify(
             logger, downloader, time_zone, settings, initialise=False
@@ -213,7 +213,7 @@ class Process:
         # self._soundcloud = soundcloud
         self._double_j = double_j
         self._triple_j = triple_j
-        self._triple_j_unearthed = triple_j_unearthed
+        self._triple_j_unearthed = unearthed
 
         self._spotify = spotify
         self._youtube_music = youtube_music
@@ -303,38 +303,17 @@ class Process:
         # store new data
         self._downloader.store_object(cache_name, cache_key, data)
 
-        # calculate position change
-        if previous_data and previous_data.get_value():
-            previous_pls = previous_data.get_value()
-            for playlist_title, tracks in data.items():
-                previous_tracks = previous_pls[playlist_title]
-                for current_index, current_track in enumerate(tracks):
-                    for previous_index, previous_track in enumerate(previous_tracks):
-                        current_title = current_track.get("title")
-                        previous_title = previous_track.get("title")
-                        current_artists = current_track.get("artists")
-                        previous_artists = previous_track.get("artists")
-                        if (
-                            current_title == previous_title
-                            and current_artists == previous_artists
-                        ):
-                            pos_change = (current_index + 1) - (previous_index + 1)
-                            current_track["position_change"] = pos_change
-                            break
-                    if current_track.get("position_change"):
-                        break
-
         # e.g.
         #             new Playlist("Annabelle", [
-        #                 new Track("Arnie", "Anders", -1, "test1", null),
-        #                 new Track("Betty", "Bobby", 2, null, "test2"),
-        #                 new Track("Cate", "Carmen", 1, "test3_1", "test3_2"),
+        #                 new Track("Arnie", "Anders", "test1", null),
+        #                 new Track("Betty", "Bobby", null, "test2"),
+        #                 new Track("Cate", "Carmen", "test3_1", "test3_2"),
         #             ]),
         #             new Playlist("Scott", [
-        #                 new Track("Wayward", "One", -1, null, "test1"),
-        #                 new Track("Eight", "Twenty", 2, "test2", "test2"),
-        #                 new Track("Steve", "Vibe", 0, "test3_1", null),
-        #                 new Track("New", "Item", null, "test4_1", null)
+        #                 new Track("Wayward", "One", null, "test1"),
+        #                 new Track("Eight", "Twenty", "test2", "test2"),
+        #                 new Track("Steve", "Vibe", "test3_1", null),
+        #                 new Track("New", "Item", "test4_1", null)
         #             ])
         #
         content = ""
@@ -343,12 +322,10 @@ class Process:
             for track in tracks:
                 title = track.get("title")
                 artists = ", ".join(track.get("artists"))
-                change = track.get("position_change")
-                change = "null" if change is None else change
                 spotify = "true" if track.get(Spotify.code) else "false"
                 ytmusic = "true" if track.get(YouTubeMusic.code) else "false"
                 content += (
-                    f'new Track("{title}", "{artists}", {change}, {spotify}, {ytmusic}),'
+                    f'new Track("{title}", "{artists}", {spotify}, {ytmusic}),'
                     + os.linesep
                 )
             content += "])," + os.linesep

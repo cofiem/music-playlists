@@ -1,9 +1,12 @@
+import logging
 from datetime import datetime
+
 from time import sleep
 from typing import List, Optional, Any
 
 from boltons.strutils import slugify
 
+from music_playlists.downloader import Downloader
 from music_playlists.track import Track
 
 
@@ -11,6 +14,11 @@ class ServicePlaylist:
     """Manages tracks in service playlists."""
 
     code = None
+
+    def __init__(self, logger: logging.Logger, downloader: Downloader, time_zone):
+        self._logger = logger
+        self._time_zone = time_zone
+        self._downloader = downloader
 
     def get_playlist_tracks(
         self, playlist_id: str, limit: Optional[int] = None
@@ -164,12 +172,22 @@ class ServicePlaylist:
                             break
 
                 if not found_track:
-                    available_display = ", ".join(str(i) for i in available_tracks)
-                    self._logger.warning(
-                        f"Did not select a song for queries '{'; '.join(source_track.query_strings)}' "
-                        f"from {len(available_tracks)} "
-                        f"options: '{available_display}'"
-                    )
+                    available_count = len(available_tracks)
+                    if available_count > 0:
+                        self._logger.warning(
+                            f"Did not select a song for queries '{'; '.join(source_track.query_strings)}' "
+                            f"from {available_count} options."
+                        )
+
+                        # for debugging
+                        # for index, available_track in enumerate(available_tracks):
+                        #     self._logger.warning(
+                        #         f"Available track {index + 1} of {available_count}: '{str(available_track)}'."
+                        #     )
+                    else:
+                        self._logger.info(
+                            f"No options for queries '{'; '.join(source_track.query_strings)}'."
+                        )
 
             if found_track:
                 tracks_add.append(found_track)
@@ -206,13 +224,16 @@ class ServicePlaylist:
 
         tracks_percent = float(tracks_included) / float(tracks_total + 0.000001)
         current_datetime = datetime.now(tz=time_zone)
+        found_info = (
+            f"Found {tracks_included} of {tracks_total} songs ({tracks_percent:.0%})"
+        )
         playlist_description = " ".join(
             [
                 f"This playlist was generated on {current_datetime.strftime('%a, %d %b %Y')}.",
-                f"Found {tracks_included} of {tracks_total} songs ({tracks_percent:.0%}) "
-                "from the source playlist.",
+                f"{found_info} " "from the source playlist.",
                 "For more information: https://github.com/cofiem/music-playlists",
             ]
         )
+        self._logger.info(found_info)
 
         return tracks_add, playlist_description

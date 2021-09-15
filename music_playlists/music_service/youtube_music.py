@@ -15,9 +15,7 @@ class YouTubeMusic(ServicePlaylist):
     code = "ytmusic"
 
     def __init__(self, logger: logging.Logger, downloader: Downloader, time_zone):
-        self._logger = logger
-        self._time_zone = time_zone
-        self._downloader = downloader
+        super().__init__(logger, downloader, time_zone)
         self._client = None  # type: Optional[YTMusic]
 
     def login_init(self):
