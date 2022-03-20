@@ -148,4 +148,7 @@ class SpotifyClient:
     def _check_status(self, r: Response):
         expected_codes = [codes.ok, codes.created]
         if r.status_code not in expected_codes:
-            raise ValueError(f"Error in response - {r.status_code}:{r.text}.")
+            raise ValueError(
+                f"Error in response url '{r.url}' "
+                f"status '{r.status_code}' content '{r.text}'."
+            )

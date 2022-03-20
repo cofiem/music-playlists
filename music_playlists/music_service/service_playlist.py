@@ -175,10 +175,10 @@ class ServicePlaylist:
                         )
 
                         # for debugging
-                        for index, available_track in enumerate(available_tracks):
-                            self._logger.warning(
-                                f"Available track {index + 1} of {available_count}: '{str(available_track)}'."
-                            )
+                        # for index, available_track in enumerate(available_tracks):
+                        #     self._logger.warning(
+                        #         f"Available track {index + 1} of {available_count}: '{str(available_track)}'."
+                        #     )
                     else:
                         self._logger.info(
                             f"No options for queries '{'; '.join(source_track.query_strings)}'."
