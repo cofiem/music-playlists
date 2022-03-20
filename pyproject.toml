@@ -11,6 +11,7 @@ requests = "^2.25.1"
 boltons = "^21.0.0"
 pytz = "^2021.1"
 lxml = "^4.6.5"
+requests-cache = "^0.9.3"
 
 [tool.poetry.dev-dependencies]
 black = "^21.5b1"

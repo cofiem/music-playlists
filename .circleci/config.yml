@@ -41,6 +41,6 @@ jobs:
       - save_cache:
           key: v1-playlists-{{ epoch }}
           paths:
-            - ~/project/music_playlists/cache_persist
+            - ~/project/music_playlists/http_cache.sqlite
       - store_artifacts:
           path: ~/project/output/index.html

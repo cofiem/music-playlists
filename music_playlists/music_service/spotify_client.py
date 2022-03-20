@@ -4,13 +4,16 @@ import webbrowser
 from logging import Logger
 from urllib.parse import urlencode
 
-import requests
-from requests import Response
+from requests import Response, codes
+
+from music_playlists.downloader import Downloader
 
 
 class SpotifyClient:
-    def __init__(self, logger: Logger, access_token=None):
+    def __init__(self, logger: Logger, downloader: Downloader, access_token=None):
         self._logger = logger
+        self._downloader = downloader
+        self._session = self._downloader.get_session
         self._access_token = access_token
 
     def get_playlist_tracks(
@@ -27,7 +30,7 @@ class SpotifyClient:
         headers = {
             "Authorization": f"Bearer {self._access_token}",
         }
-        r = requests.get(url, params=params, headers=headers)
+        r = self._session.get(url, params=params, headers=headers)
         self._check_status(r)
         return r.status_code, r.json()
 
@@ -38,7 +41,7 @@ class SpotifyClient:
         headers = {
             "Authorization": f"Bearer {self._access_token}",
         }
-        r = requests.put(url, json=params, headers=headers)
+        r = self._session.put(url, json=params, headers=headers)
         self._check_status(r)
         return r.status_code, r.json()
 
@@ -52,7 +55,7 @@ class SpotifyClient:
             "public": True if is_public else False,
         }
         headers = {"Authorization": f"Bearer {self._access_token}"}
-        r = requests.put(url, json=data, headers=headers)
+        r = self._session.put(url, json=data, headers=headers)
         self._check_status(r)
         return r.status_code, None
 
@@ -68,7 +71,7 @@ class SpotifyClient:
         headers = {
             "Authorization": f"Bearer {self._access_token}",
         }
-        r = requests.get(url, params=params, headers=headers)
+        r = self._session.get(url, params=params, headers=headers)
         self._check_status(r)
         return r.status_code, r.json()
 
@@ -99,7 +102,7 @@ class SpotifyClient:
             "client_id": client_id,
             "client_secret": client_secret,
         }
-        r = requests.post("https://accounts.spotify.com/api/token", data=data)
+        r = self._session.post("https://accounts.spotify.com/api/token", data=data)
         self._check_status(r)
         response = r.json()
         access_token = response.get("access_token")
@@ -115,7 +118,7 @@ class SpotifyClient:
         headers = {
             "Authorization": f"Basic {self._login_client_auth(client_id, client_secret)}",
         }
-        r = requests.post(
+        r = self._session.post(
             "https://accounts.spotify.com/api/token", data=data, headers=headers
         )
         self._check_status(r)
@@ -143,9 +146,6 @@ class SpotifyClient:
         return basic_b64.decode()
 
     def _check_status(self, r: Response):
-        expected_codes = [
-            requests.codes.ok,
-            requests.codes.created,
-        ]
+        expected_codes = [codes.ok, codes.created]
         if r.status_code not in expected_codes:
             raise ValueError(f"Error in response - {r.status_code}:{r.text}.")

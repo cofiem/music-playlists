@@ -18,7 +18,9 @@ class TestServiceSpotify(TestCase):
         cls._downloader = Downloader(cls._logger, Path(".", "..").resolve())
         cls._time_zone = pytz.timezone("Australia/Brisbane")
         cls._client = Spotify(cls._logger, cls._downloader, cls._time_zone)
-        cls._client._client = SpotifyClient(cls._logger, str(uuid.uuid4()))
+        cls._client._client = SpotifyClient(
+            cls._logger, cls._downloader, str(uuid.uuid4())
+        )
 
     def test_get_playlist_tracks(self):
         playlist_id = str(uuid.uuid4())
@@ -67,7 +69,7 @@ class TestServiceSpotify(TestCase):
                     }
                 },
             )
-            used_cache, tracks = self._client.find_track(query)
+            tracks = self._client.find_track(query)
             self.assertEqual(1, len(tracks))
             self.assertEqual(tracks[0].track_id, track_id)
             self.assertEqual(tracks[0].title, track_title)

@@ -22,15 +22,15 @@ class Radio4zzzMostPlayed(SourcePlaylist):
         self._time_zone = time_zone
 
     def get_playlist_tracks(self, limit: Optional[int] = None) -> List[Track]:
+        cache_temp = self._downloader.cache_temp
+        cache_pers = self._downloader.cache_persisted
         # build dates for urls
         current_time = datetime.now(tz=self._time_zone)
         date_from = current_time - timedelta(days=7)
         date_to = current_time
 
         # download 4zzz programs
-        programs = self._downloader.download_json(
-            self._downloader.cache_temp, self._url
-        )
+        programs = self._downloader.download_json(self._url)
 
         tracks = {}
 
@@ -42,29 +42,21 @@ class Radio4zzzMostPlayed(SourcePlaylist):
 
             # episodes
             episodes_url = f"{program['programRestUrl']}/episodes"
-            episodes = self._downloader.download_json(
-                self._downloader.cache_temp, episodes_url
-            )
-            for episode in episodes or []:
-                episode_start = datetime.strptime(
-                    episode["start"], "%Y-%m-%d %H:%M:%S"
-                ).replace(tzinfo=self._time_zone)
-                episode_end = datetime.strptime(
-                    episode["end"], "%Y-%m-%d %H:%M:%S"
-                ).replace(tzinfo=self._time_zone)
-                if (
-                    date_from > episode_start
-                    or date_to < episode_start
-                    or date_from > episode_end
-                    or date_to < episode_end
-                ):
+            episodes = self._downloader.download_json(episodes_url) or []
+            pat = "%Y-%m-%d %H:%M:%S"
+            for episode in episodes:
+                episode_start = datetime.strptime(episode["start"], pat)
+                episode_start = episode_start.replace(tzinfo=self._time_zone)
+                episode_end = datetime.strptime(episode["end"], pat)
+                episode_end = episode_end.replace(tzinfo=self._time_zone)
+
+                # must be fully inside the from -> to dates
+                if episode_start < date_from or episode_end > date_to:
                     continue
 
                 # playlist tracks
                 playlist_url = f"{episode['episodeRestUrl']}/playlists"
-                playlist_raw = self._downloader.download_json(
-                    self._downloader.cache_persisted, playlist_url
-                )
+                playlist_raw = self._downloader.download_json(playlist_url)
                 for track in playlist_raw or []:
                     track_type = track["type"]
                     track_artist = track["artist"]

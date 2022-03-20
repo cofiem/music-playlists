@@ -1,9 +1,8 @@
-import importlib.resources
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Union, Optional, Any
+from typing import Union, Optional
 
 import pytz
 
@@ -111,18 +110,26 @@ class Process:
 
         playlists_info = {}
 
+        # get the playlist source tracks
+        track_new_list = {}
+        for source_code, source_instance in source_playlists.items():
+            tracks_new = source_instance.get_playlist_tracks(limit)
+            if not tracks_new:
+                self._logger.warning(
+                    f"Skipping playlist '{source_code}' as there are no new tracks."
+                )
+                continue
+            track_new_list[source_code] = tracks_new
+
         playlist_ids = settings.get("playlists", {})  # type: dict[str, dict[str, str]]
         for service_code, playlists in playlist_ids.items():
             service = services[service_code]
             for playlist_code, playlist_key in playlists.items():
 
-                cache_name = self._downloader.cache_persisted
-                cache_key = "-".join([service_code, playlist_code])
-
                 playlist_id = self._get_setting(playlists, playlist_code)
                 tracks_current = service.get_playlist_tracks(playlist_id)
                 tracks_source = source_playlists.get(playlist_code)
-                tracks_new = tracks_source.get_playlist_tracks(limit)
+                tracks_new = track_new_list.get(playlist_code)
                 if not tracks_new:
                     self._logger.warning(
                         f"Skipping playlist '{playlist_code}' for '{service_code}' as there are no new tracks."
@@ -139,22 +146,6 @@ class Process:
                     self._time_zone,
                 )
 
-                last_updated = self._downloader.retrieve_object(cache_name, cache_key)
-                # update the cached datetime after reading it
-                self._downloader.store_object(cache_name, cache_key, datetime_now)
-                if last_updated:
-                    cache_value = last_updated.get_value()
-                    hours_ago = 6
-                    twelve_hours_ago = (
-                        datetime.now(tz=self._time_zone) - timedelta(hours=hours_ago)
-                    ).isoformat()
-                    if cache_value and cache_value > twelve_hours_ago:
-                        self._logger.warning(
-                            f"Skipping playlist '{playlist_code}' for '{service_code}' "
-                            f"because it was updated less than {hours_ago} hours ago."
-                        )
-                        continue
-
                 result = service.set_playlist_details(
                     playlist_id, tracks_source.title, description, is_public=True
                 )
@@ -170,8 +161,6 @@ class Process:
                     self._logger.error(
                         f"Error updating playlist tracks '{playlist_code}' for '{service_code}'."
                     )
-
-        self._render_html(playlists_info)
 
         self._logger.info("Finished updating music playlists")
 
@@ -289,50 +278,3 @@ class Process:
         else:
             raise ValueError("YouTube Music is in an unknown state.")
         return youtube_music
-
-    def _render_html(self, data: dict[str, list[dict[str, Any]]]):
-        # read the html template
-        placeholder = "REPLACE_ME"
-        package = "music_playlists.report"
-        resource = "index.template.html"
-        template = importlib.resources.read_text(package, resource)
-
-        cache_name = self._downloader.cache_persisted
-        cache_key = "render-html-playlist-report"
-        previous_data = self._downloader.retrieve_object(cache_name, cache_key)
-        # store new data
-        self._downloader.store_object(cache_name, cache_key, data)
-
-        # e.g.
-        #             new Playlist("Annabelle", [
-        #                 new Track("Arnie", "Anders", "test1", null),
-        #                 new Track("Betty", "Bobby", null, "test2"),
-        #                 new Track("Cate", "Carmen", "test3_1", "test3_2"),
-        #             ]),
-        #             new Playlist("Scott", [
-        #                 new Track("Wayward", "One", null, "test1"),
-        #                 new Track("Eight", "Twenty", "test2", "test2"),
-        #                 new Track("Steve", "Vibe", "test3_1", null),
-        #                 new Track("New", "Item", "test4_1", null)
-        #             ])
-        #
-        content = ""
-        for playlist_title, tracks in data.items():
-            content += f'new Playlist("{playlist_title}", [' + os.linesep
-            for track in tracks:
-                title = track.get("title")
-                artists = ", ".join(track.get("artists"))
-                spotify = "true" if track.get(Spotify.code) else "false"
-                ytmusic = "true" if track.get(YouTubeMusic.code) else "false"
-                content += (
-                    f'new Track("{title}", "{artists}", {spotify}, {ytmusic}),'
-                    + os.linesep
-                )
-            content += "])," + os.linesep
-
-        output = template.replace(placeholder, content)
-        with importlib.resources.path(package, resource) as p:
-            output_path = p.parent.parent.parent / "output" / "index.html"
-            output_path.parent.mkdir(exist_ok=True, parents=True)
-            output_path.write_text(output, encoding="utf-8")
-        return True

@@ -34,9 +34,7 @@ class DoubleJMostPlayed(SourcePlaylist):
         )
 
         # download track list
-        tracks_data = self._downloader.download_json(
-            self._downloader.cache_persisted, url
-        )
+        tracks_data = self._downloader.download_json(url)
 
         result = []
         for index, item in enumerate(tracks_data["items"]):

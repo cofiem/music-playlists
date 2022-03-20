@@ -1,3 +1,4 @@
+import functools
 import logging
 from pathlib import Path
 from typing import List, Optional
@@ -36,7 +37,9 @@ class YouTubeMusic(ServicePlaylist):
 
     def login(self, credentials: str):
         self._logger.info("Login to YouTube Music.")
-        self._client = YTMusic(credentials)
+        s = self._downloader.get_session
+        s.request = functools.partial(s.request, timeout=30)
+        self._client = YTMusic(auth=credentials, requests_session=s)
         return True
 
     def get_playlist_tracks(
@@ -108,22 +111,13 @@ class YouTubeMusic(ServicePlaylist):
         )
         return result == "STATUS_SUCCEEDED"
 
-    def find_track(self, query: str, limit: int = 5) -> tuple[bool, list[Track]]:
+    def find_track(self, query: str, limit: int = 5) -> list[Track]:
         self._logger.debug(f"Looking for YouTube Music track matching '{query}'.")
-        cache_persist = self._downloader.cache_persisted
-        used_cache = False
 
         # cache response and use cache if available
-        key = f"{self.code}api query {query}"
-        query_result = self._downloader.retrieve_object(cache_persist, key)
-        if query_result is not None:
-            used_cache = True
-            query_result = query_result.get_value()
-        else:
-            query_result = self._client.search(
-                query=query, filter="songs", limit=limit, ignore_spelling=False
-            )
-            self._downloader.store_object(cache_persist, key, query_result)
+        query_result = self._client.search(
+            query=query, filter="songs", limit=limit, ignore_spelling=False
+        )
 
         result = []
         for track in query_result:
@@ -137,4 +131,4 @@ class YouTubeMusic(ServicePlaylist):
                     query_strings=[],
                 )
             )
-        return used_cache, result
+        return result

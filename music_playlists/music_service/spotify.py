@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 
-import requests
+from requests import codes
 
 from music_playlists.downloader import Downloader
 from music_playlists.music_service.service_playlist import ServicePlaylist
@@ -14,7 +14,7 @@ class Spotify(ServicePlaylist):
 
     def __init__(self, logger: logging.Logger, downloader: Downloader, time_zone):
         super().__init__(logger, downloader, time_zone)
-        self._client = None  # type: Optional[SpotifyClient]
+        self._client = SpotifyClient(self._logger, self._downloader)
 
     def login_init(self, client_id: str, client_secret: str):
         self._logger.info("Initialise Spotify login.")
@@ -22,7 +22,6 @@ class Spotify(ServicePlaylist):
         if not client_id or not client_secret:
             raise Exception("Must provide client_id and client_secret.")
 
-        self._client = SpotifyClient(self._logger)
         access_token, refresh_token, expires_in = self._client.login_init(
             client_id, client_secret
         )
@@ -37,7 +36,7 @@ class Spotify(ServicePlaylist):
         self._logger.info("Login to Spotify.")
         if not refresh_token or not client_id or not client_secret:
             raise Exception("Must provide refresh_token, client_id, and client_secret.")
-        self._client = SpotifyClient(self._logger)
+
         result = self._client.login_token_next(client_id, client_secret, refresh_token)
         return result
 
@@ -68,7 +67,7 @@ class Spotify(ServicePlaylist):
         status, content = self._client.set_playlist_tracks(
             playlist_id, [t.track_id for t in new_tracks]
         )
-        return status == requests.codes.created
+        return status == codes.created
 
     def set_playlist_details(
         self,
@@ -81,22 +80,14 @@ class Spotify(ServicePlaylist):
         status, content = self._client.set_playlist_details(
             playlist_id, title, description, is_public
         )
-        return status == requests.codes.ok
+        return status == codes.ok
 
-    def find_track(self, query: str, limit: int = 5) -> tuple[bool, list[Track]]:
+    def find_track(self, query: str, limit: int = 5) -> list[Track]:
         self._logger.debug(f"Looking for Spotify track matching '{query}'")
-        cache_persist = self._downloader.cache_persisted
-        used_cache = False
+
         tracks = []
         # cache response and use cache if available
-        key = f"{self.code}api query {query}"
-        query_result = self._downloader.retrieve_object(cache_persist, key)
-        if query_result is not None:
-            used_cache = True
-            query_result = query_result.get_value()
-        else:
-            query_status, query_result = self._client.query(query, limit)
-            self._downloader.store_object(cache_persist, key, query_result)
+        query_status, query_result = self._client.query(query, limit)
 
         # stop if there are results
         if query_result and query_result["tracks"].get("items"):
@@ -111,4 +102,4 @@ class Spotify(ServicePlaylist):
                 )
 
                 tracks.append(track)
-        return used_cache, tracks
+        return tracks

@@ -1,7 +1,5 @@
 import logging
 from datetime import datetime
-
-from time import sleep
 from typing import List, Optional, Any
 
 from boltons.strutils import slugify
@@ -61,7 +59,7 @@ class ServicePlaylist:
         """
         raise NotImplementedError()
 
-    def find_track(self, query: str, limit: int = 5) -> tuple[bool, list[Track]]:
+    def find_track(self, query: str, limit: int = 5) -> list[Track]:
         """
         Find tracks in a service matching a query.
 
@@ -158,10 +156,7 @@ class ServicePlaylist:
             if not found_track:
                 available_tracks = []
                 for query_string in source_track.query_strings:
-                    used_cache, current_available_tracks = self.find_track(query_string)
-                    if not used_cache:
-                        # sleep for 1 second so the find track http requests are not too fast
-                        sleep(1)
+                    current_available_tracks = self.find_track(query_string)
                     available_tracks.extend(current_available_tracks)
                     for available_track in current_available_tracks:
                         if self.is_match(source_track, available_track):
@@ -180,10 +175,10 @@ class ServicePlaylist:
                         )
 
                         # for debugging
-                        # for index, available_track in enumerate(available_tracks):
-                        #     self._logger.warning(
-                        #         f"Available track {index + 1} of {available_count}: '{str(available_track)}'."
-                        #     )
+                        for index, available_track in enumerate(available_tracks):
+                            self._logger.warning(
+                                f"Available track {index + 1} of {available_count}: '{str(available_track)}'."
+                            )
                     else:
                         self._logger.info(
                             f"No options for queries '{'; '.join(source_track.query_strings)}'."

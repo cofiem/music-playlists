@@ -35,9 +35,7 @@ class TripleJMostPlayed(SourcePlaylist):
         )
 
         # download track list
-        tracks_data = self._downloader.download_json(
-            self._downloader.cache_persisted, url
-        )
+        tracks_data = self._downloader.download_json(url)
 
         result = []
         for index, item in enumerate(tracks_data["items"]):
@@ -53,9 +51,11 @@ class TripleJMostPlayed(SourcePlaylist):
                     artist = f'{artist}, {raw_artist["name"]}'
                 elif raw_artist["type"] == "featured":
                     featuring = f'{artist}, {raw_artist["name"]}'
+                elif raw_artist["type"] == "performer":
+                    featuring = f'{artist}, {raw_artist["name"]}'
                 else:
                     raise Exception(
-                        f"Unrecognised artist {raw_artist['type']}, {artist}, {raw_artist['name']}."
+                        f"Unrecognised artist '{raw_artist['type']}', '{artist}', '{raw_artist['name']}'."
                     )
 
             artists = [artist.strip(", ")]

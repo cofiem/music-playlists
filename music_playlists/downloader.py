@@ -1,12 +1,9 @@
-import json
 import logging
-from os import makedirs
-from os.path import join, isfile
+from datetime import timedelta
 from pathlib import Path
-from typing import Optional, Dict, List, Any, Union
+from typing import Optional, Dict, List, Union
 
-import requests
-from boltons.strutils import slugify
+from requests_cache import CachedSession, SQLiteCache
 
 
 class CacheEntry:
@@ -23,30 +20,34 @@ class Downloader:
     cache_temp = "cache_temp"
     cache_persisted = "cache_persist"
 
-    def __init__(self, logger: logging.Logger, base_path: Path = None):
+    def __init__(self, logger: logging.Logger, store_path: Path = None):
         self._logger = logger
-        self._base_path = base_path or Path(".").resolve()
-
-    def download_text(self, cache_name: str, url: str) -> Optional[str]:
-        return self._download(cache_name, url, "text")
-
-    def download_json(self, cache_name: str, url: str) -> Optional[Union[Dict, List]]:
-        return self._download(cache_name, url, "json")
-
-    def _download(self, cache_name: str, url: str, content_type: str):
-        # load from cache
-        if content_type == "json":
-            content = self.retrieve_object(cache_name, url)
+        timeout = 30
+        if store_path:
+            backend = SQLiteCache(store_path, timeout=timeout)
         else:
-            content = self.retrieve_page(cache_name, url)
-        if content is not None:
-            return content.get_value()
+            backend = SQLiteCache("http_cache", use_memory=True, timeout=timeout)
 
-        # get from website
-        self._logger.debug(
-            f"Downloading '{content_type}' to cache '{cache_name}' from '{url}'"
+        expire_after = timedelta(hours=2)
+        self._session = CachedSession(
+            backend=backend, timeout=timeout, expire_after=expire_after
         )
-        page = requests.get(url)
+
+    @property
+    def get_session(self):
+        return self._session
+
+    def download_text(self, url: str) -> Optional[str]:
+        return self._download(url, "text")
+
+    def download_json(self, url: str) -> Optional[Union[Dict, List]]:
+        return self._download(url, "json")
+
+    def _download(self, url: str, content_type: str):
+        # get from website
+        self._logger.debug(f"Downloading '{content_type}' from '{url}'")
+
+        page = self._session.get(url)
         if page.is_redirect or page.is_permanent_redirect or page.status_code != 200:
             content = None
         elif content_type == "json":
@@ -54,96 +55,7 @@ class Downloader:
         else:
             content = page.text
 
-        # store content, even if it is empty or None
-        if content_type == "json":
-            self.store_object(cache_name, url, content)
-        else:
-            self.store_page(cache_name, url, content)
-
         if not content:
             return None
 
         return content
-
-    def cache_item_id(self, key) -> str:
-        if not key:
-            raise Exception("Must provide a cache key.")
-        item_id = slugify(key, delim="_", ascii=True).decode("utf-8").strip().casefold()
-
-        windows_invalid_chars = r"<>:\"/\|?*'"
-        for windows_invalid_char in windows_invalid_chars:
-            item_id = item_id.replace(windows_invalid_char, "_")
-
-        return item_id
-
-    def store_page(self, cache_name: str, url: str, content: Any) -> bool:
-        return self._cache_save(cache_name, url, content)
-
-    def retrieve_page(self, cache_name: str, url: str) -> Optional[CacheEntry]:
-        return self._cache_load(cache_name, url)
-
-    def store_object(self, cache_name: str, key: str, value: Any) -> bool:
-        return self._cache_save(cache_name, key, json.dumps(value), ext="json")
-
-    def retrieve_object(self, cache_name: str, key: str) -> Optional[CacheEntry]:
-        value = self._cache_load(cache_name, key, ext="json")
-        if isinstance(value, CacheEntry):
-            return CacheEntry(json.loads(value.get_value()))
-        return None
-
-    def remove_object(self, cache_name: str, key: str) -> bool:
-        return self._cache_remove(cache_name, key, ext="json")
-
-    def _cache_save(
-        self, cache_name: str, key: str, value: Any, ext: str = "txt"
-    ) -> bool:
-        cache_dir = str(Path(self._base_path, cache_name))
-        makedirs(cache_dir, exist_ok=True)
-        item_id = self.cache_item_id(key)
-        file_path = join(cache_dir, item_id + "." + ext)
-
-        self._logger.debug(f"Saving cache '{cache_name}' for '{key}' to '{file_path}'")
-
-        with open(file_path, "wb") as f:
-            f.write(value.encode("utf-8"))
-        return True
-
-    def _cache_load(
-        self, cache_name: str, key: str, ext: str = "txt"
-    ) -> Optional[CacheEntry]:
-        cache_dir = str(Path(self._base_path, cache_name))
-        makedirs(cache_dir, exist_ok=True)
-        item_id = self.cache_item_id(key)
-        file_path = join(cache_dir, item_id + "." + ext)
-
-        if not isfile(file_path):
-            self._logger.debug(
-                f"Cache '{cache_name}' does not contain '{key}' from '{file_path}'"
-            )
-            return None
-
-        self._logger.debug(
-            f"Loading cache '{cache_name}' for '{key}' from '{file_path}'"
-        )
-
-        with open(file_path, "rb") as f:
-            return CacheEntry(f.read().decode("utf-8"))
-
-    def _cache_remove(self, cache_name: str, key: str, ext: str = "txt"):
-        cache_dir = Path(self._base_path, cache_name)
-        cache_dir.mkdir(parents=True, exist_ok=True)
-        item_id = self.cache_item_id(key)
-        file_path = cache_dir / (item_id + "." + ext)
-
-        if not file_path.is_file():
-            self._logger.debug(
-                f"Cache '{cache_name}' does not contain '{key}' from '{file_path}'"
-            )
-            return False
-
-        self._logger.debug(
-            f"Removing cache '{cache_name}' for '{key}' from '{file_path}'"
-        )
-
-        file_path.unlink(missing_ok=True)
-        return True

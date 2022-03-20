@@ -62,10 +62,7 @@ class TestServiceYouTubeMusic(TestCase):
             ]
         )
         self._client._client.search = mock
-        self._downloader.remove_object(
-            self._downloader.cache_persisted, f"{YouTubeMusic.code}api query {query}"
-        )
-        used_cache, tracks = self._client.find_track(query)
+        tracks = self._client.find_track(query)
         self.assertEqual(1, len(tracks))
         self.assertEqual(tracks[0].track_id, track_id)
         self.assertEqual(tracks[0].title, track_title)
