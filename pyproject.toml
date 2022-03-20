@@ -10,7 +10,7 @@ ytmusicapi = "^0.19.2"
 requests = "^2.25.1"
 boltons = "^21.0.0"
 pytz = "^2021.1"
-lxml = "^4.6.3"
+lxml = "^4.6.5"
 
 [tool.poetry.dev-dependencies]
 black = "^21.5b1"
