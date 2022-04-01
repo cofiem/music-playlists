@@ -2,8 +2,6 @@
 
 Generates streaming music playlists create from various song charts.
 
-[![CircleCI](https://circleci.com/gh/cofiem/music-playlists/tree/master.svg?style=svg)](https://circleci.com/gh/cofiem/music-playlists/tree/master)
-
 ## Playlists
 
 ### Triple J Unearthed Weekly
