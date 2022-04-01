@@ -1,280 +1,206 @@
 import logging
-import os
 from datetime import datetime
 from pathlib import Path
-from typing import Union, Optional
 
 import pytz
 
+from music_playlists.abc_radio.manage import Manage as AbcRadioManage
 from music_playlists.downloader import Downloader
-from music_playlists.music_service.service_playlist import ServicePlaylist
-from music_playlists.music_service.spotify import Spotify
-from music_playlists.music_service.youtube_music import YouTubeMusic
-from music_playlists.music_source.doublej_most_played import DoubleJMostPlayed
-from music_playlists.music_source.last_fm_most_popular import LastFmMostPopular
-from music_playlists.music_source.radio4zzz_most_played import Radio4zzzMostPlayed
-from music_playlists.music_source.source_playlist import SourcePlaylist
-from music_playlists.music_source.triplej_most_played import TripleJMostPlayed
-from music_playlists.music_source.triplej_unearthed_chart import TripleJUnearthedChart
+from music_playlists.intermediate.track import Track
+from music_playlists.intermediate.track_list import TrackList
+from music_playlists.last_fm.manage import Manage as LastFmManage
+from music_playlists.radio_4zzz.manage import Manage as Radio4zzzManage
+from music_playlists.settings import Settings
+from music_playlists.spotify.client import Client as SpotifyClient
+from music_playlists.spotify.manage import Manage as SpotifyManage
+from music_playlists.youtube_music.client import Client as YouTubeMusicClient
+from music_playlists.youtube_music.manage import Manage as YouTubeMusicManage
+from music_playlists.intermediate.manage import Manage as IntermediateManage
 
 
 class Process:
     _logger = logging.getLogger("music-playlists")
 
     def __init__(self):
-        self._base_path = None
-        self._downloader = None  # type: Optional[Downloader]
-        self._time_zone = None  # type: datetime.tzinfo
-        self._lastfm_api_key = None  # type: Optional[str]
-        self._lastfm = None  # type: Optional[LastFmMostPopular]
-        self._radio_4zzz = None  # type: Optional[Radio4zzzMostPlayed]
-        self._sc_client_id = None  # type: Optional[str]
-        # self._soundcloud = None  # type: Optional[SoundCloudTrending]
-        self._double_j = None  # type: Optional[DoubleJMostPlayed]
-        self._triple_j = None  # type: Optional[TripleJMostPlayed]
-        self._triple_j_unearthed = None  # type: Optional[TripleJUnearthedChart]
+        self._settings = Settings()
+        s = self._settings
 
-        self._spotify = None  # type: Optional[Spotify]
-        self._youtube_music = None  # type: Optional[YouTubeMusic]
+        self._base_path = Path(s.base_path)
+        self._time_zone = pytz.timezone(s.time_zone)
+        tz = self._time_zone
 
-    @property
-    def default_settings(self):
-        return {
-            "time_zone": "MUSIC_PLAYLISTS_TIME_ZONE",
-            "base_path": "MUSIC_PLAYLISTS_BASE_PATH",
-            "lastfm_api_key": "LASTFM_AUTH_API_KEY",
-            # "soundcloud_client_id": "SOUNDCLOUD_CLIENT_ID",
-            "spotify_refresh_token": "SPOTIFY_AUTH_REFRESH_TOKEN",
-            "spotify_client_id": "SPOTIFY_AUTH_CLIENT_ID",
-            "spotify_client_secret": "SPOTIFY_AUTH_CLIENT_SECRET",
-            "youtube_music_config": "YOUTUBE_MUSIC_AUTH_CONFIG",
-            "playlists": {
-                Spotify.code: {
-                    LastFmMostPopular.code: "SPOTIFY_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS",
-                    # SoundCloudTrending.code: "SPOTIFY_PLAYLIST_ID_SOUNDCLOUD_TRENDING_AUS",
-                    Radio4zzzMostPlayed.code: "SPOTIFY_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED",
-                    DoubleJMostPlayed.code: "SPOTIFY_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED",
-                    TripleJMostPlayed.code: "SPOTIFY_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED",
-                    TripleJUnearthedChart.code: "SPOTIFY_PLAYLIST_ID_TRIPLEJ_UNEARTHED",
-                },
-                YouTubeMusic.code: {
-                    LastFmMostPopular.code: "YOUTUBE_MUSIC_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS",
-                    # SoundCloudTrending.code: "YOUTUBE_MUSIC_PLAYLIST_ID_SOUNDCLOUD_TRENDING_AUS",
-                    Radio4zzzMostPlayed.code: "YOUTUBE_MUSIC_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED",
-                    DoubleJMostPlayed.code: "YOUTUBE_MUSIC_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED",
-                    TripleJMostPlayed.code: "YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED",
-                    TripleJUnearthedChart.code: "YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED",
-                },
-            },
-        }
+        self._downloader = Downloader(self._base_path)
+        d = self._downloader
 
-    def initialise(self, settings: dict[str, Union[str, dict[str, str]]]):
-        self._logger.info("Setting up access to music services.")
-
-        logger = self._logger
-        base_path = Path(self._get_setting(settings, "base_path"))
-        downloader = Downloader(logger, base_path)
-
-        time_zone = pytz.timezone(self._get_setting(settings, "time_zone"))
-
-        self._get_spotify(logger, downloader, time_zone, settings, initialise=True)
-        self._get_youtube_music(
-            logger, downloader, time_zone, settings, initialise=True
+        self._abc_radio = AbcRadioManage(d, tz)
+        self._last_fm = LastFmManage(d, tz, s.lastfm_api_key)
+        self._radio_4zzz = Radio4zzzManage(d, tz)
+        self._spotify_client = SpotifyClient(
+            d,
+            s.spotify_redirect_uri,
+            s.spotify_client_id,
+            s.spotify_client_secret,
+            s.spotify_refresh_token,
         )
+        self._spotify = SpotifyManage(d, self._spotify_client)
 
-        self._logger.info("Finished setting up access to music services.")
-        return True
+        self._youtube_music_client = YouTubeMusicClient(d, s.youtube_music_config)
+        self._youtube_music = YouTubeMusicManage(d, self._youtube_music_client)
 
-    def run(self, settings: dict[str, Union[str, dict[str, str]]]):
+        self._intermediate = IntermediateManage()
+
+    def run(self):
         self._logger.info("Updating music playlists.")
 
-        datetime_now = datetime.now(tz=self._time_zone).isoformat()
+        self._spotify.client.login()
+        self._youtube_music.client.login()
 
-        self.build(settings)
+        s = self._settings
 
-        # obtain the track information and normalise the track details
-        limit = 100
-        source_playlists = {
-            Radio4zzzMostPlayed.code: self._radio_4zzz,
-            LastFmMostPopular.code: self._lastfm,
-            TripleJMostPlayed.code: self._triple_j,
-            TripleJUnearthedChart.code: self._triple_j_unearthed,
-            DoubleJMostPlayed.code: self._double_j,
-        }  # type: dict[str, SourcePlaylist]
+        # get the new tracks from the source playlists
+        # and find the new tracks in the streaming services
+        triplej = self._abc_radio.triplej_most_played()
+        self._update_spotify(triplej, s.playlist_spotify_triplej_most_played)
+        self._update_youtube_music(
+            triplej, s.playlist_youtube_music_triplej_most_played
+        )
 
-        # find songs in streaming services and build new playlists
-        services = {
-            Spotify.code: self._spotify,
-            YouTubeMusic.code: self._youtube_music,
-        }  # type: dict[str, ServicePlaylist]
+        doublej = self._abc_radio.doublej_most_played()
+        self._update_spotify(doublej, s.playlist_spotify_doublej_most_played)
+        self._update_youtube_music(
+            doublej, s.playlist_youtube_music_doublej_most_played
+        )
 
-        playlists_info = {}
+        unearthed = self._abc_radio.unearthed_most_played()
+        self._update_spotify(unearthed, s.playlist_spotify_unearthed_most_played)
+        self._update_youtube_music(
+            unearthed, s.playlist_youtube_music_unearthed_most_played
+        )
 
-        # get the playlist source tracks
-        track_new_list = {}
-        for source_code, source_instance in source_playlists.items():
-            tracks_new = source_instance.get_playlist_tracks(limit)
-            if not tracks_new:
-                self._logger.warning(
-                    f"Skipping playlist '{source_code}' as there are no new tracks."
-                )
-                continue
-            track_new_list[source_code] = tracks_new
+        last_fm = self._last_fm.aus_top_tracks()
+        self._update_spotify(last_fm, s.playlist_spotify_last_fm_most_popular_aus)
+        self._update_youtube_music(
+            last_fm, s.playlist_youtube_music_last_fm_most_popular_aus
+        )
 
-        playlist_ids = settings.get("playlists", {})  # type: dict[str, dict[str, str]]
-        for service_code, playlists in playlist_ids.items():
-            service = services[service_code]
-            for playlist_code, playlist_key in playlists.items():
+        # reduce the 'all-plays' track lists to the top 100 most played
 
-                playlist_id = self._get_setting(playlists, playlist_code)
-                tracks_current = service.get_playlist_tracks(playlist_id)
-                tracks_source = source_playlists.get(playlist_code)
-                tracks_new = track_new_list.get(playlist_code)
-                if not tracks_new:
-                    self._logger.warning(
-                        f"Skipping playlist '{playlist_code}' for '{service_code}' as there are no new tracks."
-                    )
-                    continue
+        # classic = self._intermediate.most_played(self._abc_radio.classic_recently_played())
 
-                if tracks_source.title not in playlists_info:
-                    playlists_info[tracks_source.title] = []
+        # jazz = self._intermediate.most_played(self._abc_radio.jazz_recently_played())
 
-                tracks_add, description = service.build_new_playlist(
-                    tracks_current,
-                    tracks_new,
-                    playlists_info[tracks_source.title],
-                    self._time_zone,
-                )
-
-                result = service.set_playlist_details(
-                    playlist_id, tracks_source.title, description, is_public=True
-                )
-                if not result:
-                    self._logger.error(
-                        f"Error updating playlist details '{playlist_code}' for '{service_code}'."
-                    )
-
-                result = service.set_playlist_tracks(
-                    playlist_id, tracks_add, tracks_current
-                )
-                if not result:
-                    self._logger.error(
-                        f"Error updating playlist tracks '{playlist_code}' for '{service_code}'."
-                    )
+        radio_4zzz_plays = self._radio_4zzz.active_program_tracks()
+        radio_4zzz = self._intermediate.most_played(radio_4zzz_plays)
+        self._update_spotify(radio_4zzz, s.playlist_spotify_radio_4zzz_most_played)
+        self._update_youtube_music(
+            radio_4zzz, s.playlist_youtube_music_radio_4zzz_most_played
+        )
 
         self._logger.info("Finished updating music playlists")
 
-    def build(self, settings: dict[str, Union[str, dict[str, str]]]):
-        self._logger.info("Starting up.")
+    def _find_tracks(self, tracks: list[Track], search_func):
+        total_count = 0
+        found_count = 0
+        results = {}
+        for track in tracks:
+            total_count += 1
+            queries = self._intermediate.queries(track)
+            query_match = None
+            service_found_count = 0
+            for query in queries:
+                if query in results:
+                    query_match = query
+                    break
+                found_tracks = search_func(query)
+                service_found_count += len(found_tracks.tracks)
+                match = self._intermediate.match(track, found_tracks.tracks)
+                if match:
+                    results[query] = match
+                    query_match = query
+                    break
 
-        logger = self._logger
-        base_path = Path(self._get_setting(settings, "base_path"))
-        downloader = Downloader(logger, base_path)
-
-        time_zone = pytz.timezone(self._get_setting(settings, "time_zone"))
-
-        lastfm_api_key = self._get_setting(settings, "lastfm_api_key")
-        lastfm = LastFmMostPopular(logger, downloader, lastfm_api_key)
-
-        radio_4zzz = Radio4zzzMostPlayed(logger, downloader, time_zone)
-
-        # sc_client_id = self._get_setting(settings, "soundcloud_client_id")
-        # soundcloud = SoundCloudTrending(logger, downloader, sc_client_id)
-
-        double_j = DoubleJMostPlayed(logger, downloader, time_zone)
-        triple_j = TripleJMostPlayed(logger, downloader, time_zone)
-        unearthed = TripleJUnearthedChart(logger, downloader, time_zone)
-
-        spotify = self._get_spotify(
-            logger, downloader, time_zone, settings, initialise=False
-        )
-        youtube_music = self._get_youtube_music(
-            logger, downloader, time_zone, settings, initialise=False
-        )
-
-        self._base_path = base_path
-        self._downloader = downloader
-        self._time_zone = time_zone
-        self._lastfm_api_key = lastfm_api_key
-        self._lastfm = lastfm
-        self._radio_4zzz = radio_4zzz
-        # self._sc_client_id = sc_client_id
-        # self._soundcloud = soundcloud
-        self._double_j = double_j
-        self._triple_j = triple_j
-        self._triple_j_unearthed = unearthed
-
-        self._spotify = spotify
-        self._youtube_music = youtube_music
-
-        self._logger.info("Finished starting up.")
-
-    def _get_setting(self, settings: dict[str, Union[str, dict[str, str]]], name: str):
-        key = settings.get(name)
-        if key is None:
-            raise ValueError(f"Could not retrieve key for env var '{name}'.")
-
-        value = os.getenv(key)
-        if value is None:
-            raise ValueError(f"Could not retrieve value for env var '{name}:{key}'.")
-
-        return value
-
-    def _get_spotify(
-        self,
-        logger: logging.Logger,
-        downloader: Downloader,
-        time_zone: datetime.tzinfo,
-        settings: dict[str, Union[str, dict[str, str]]],
-        initialise: bool,
-    ):
-        spotify_client_id = self._get_setting(settings, "spotify_client_id")
-        spotify_client_secret = self._get_setting(settings, "spotify_client_secret")
-        spotify_refresh_token = self._get_setting(settings, "spotify_refresh_token")
-        spotify = Spotify(logger, downloader, time_zone)
-
-        if initialise and not spotify_refresh_token:
-            result = spotify.login_init(spotify_client_id, spotify_client_secret)
-            if result is not True:
-                raise ValueError("Could not initialise Spotify, check the settings.")
-
-        elif initialise and spotify_refresh_token:
-            logger.warning("Spotify refresh token is already available, nothing to do.")
-        elif not initialise and not spotify_refresh_token:
-            raise ValueError("Spotify must be initialised first.")
-        elif not initialise and spotify_refresh_token:
-            spotify.login(
-                spotify_refresh_token, spotify_client_id, spotify_client_secret
-            )
-        else:
-            raise ValueError("Spotify is in an unknown state.")
-        return spotify
-
-    def _get_youtube_music(
-        self,
-        logger: logging.Logger,
-        downloader: Downloader,
-        time_zone: datetime.tzinfo,
-        settings: dict[str, Union[str, dict[str, str]]],
-        initialise: bool,
-    ):
-        youtube_music_config = self._get_setting(settings, "youtube_music_config")
-        youtube_music = YouTubeMusic(logger, downloader, time_zone)
-
-        if initialise and not youtube_music_config:
-            result = youtube_music.login(youtube_music_config)
-            if result is not True:
-                raise ValueError(
-                    "Could not initialise YouTube Music, check the settings."
+            if query_match:
+                found_count += 1
+            else:
+                self._logger.warning(
+                    f"No match in {len(queries)} queries " f"for track {track}"
                 )
-        elif initialise and youtube_music_config:
-            logger.warning(
-                "YouTube Music auth config is already available, nothing to do."
-            )
-        elif not initialise and not youtube_music_config:
-            raise ValueError("YouTube Music must be initialised first.")
-        elif not initialise and youtube_music_config:
-            youtube_music.login(youtube_music_config)
-        else:
-            raise ValueError("YouTube Music is in an unknown state.")
-        return youtube_music
+                self._logger.warning(
+                    f"No match in {service_found_count} service tracks "
+                    f"for queries {queries}"
+                )
+
+        tracks_percent = float(found_count) / float(total_count + 0.000001)
+        current_datetime = datetime.now(tz=self._time_zone)
+        found_info = (
+            f"Found {found_count} of {total_count} songs ({tracks_percent:.0%})"
+        )
+        self._logger.warning(found_info)
+
+        # build text for streaming service playlists
+        descr = " ".join(
+            [
+                "This playlist was generated on "
+                f"{current_datetime.strftime('%a, %d %b %Y')}.",
+                f"{found_info} from the source playlist.",
+                "For more information: https://github.com/cofiem/music-playlists",
+            ]
+        )
+
+        return results, descr
+
+    def _update_spotify(self, track_list: TrackList, playlist_id: str):
+        # spotify
+        self._logger.info("Find tracks on Spotify.")
+        sp_search = self._spotify.search_tracks
+        sp_tracks, sp_descr = self._find_tracks(track_list.tracks, sp_search)
+
+        title = track_list.title
+        is_public = True
+        tracks = [v for k, v in sp_tracks.items()]
+
+        details_result = self._spotify.update_playlist_details(
+            playlist_id,
+            title,
+            sp_descr,
+            is_public,
+        )
+        tracks_result = self._spotify.update_playlist_tracks(
+            playlist_id,
+            tracks,
+        )
+
+        self._logger.info(
+            f"Spotify update "
+            f"details {'succeeded' if details_result else 'failed'} and "
+            f"tracks {'succeeded' if tracks_result else 'failed'}."
+        )
+
+    def _update_youtube_music(self, track_list: TrackList, playlist_id: str):
+        # youtube music
+        self._logger.info("Find tracks on YouTube Music.")
+        yt_search = self._youtube_music.search_tracks
+        yt_tracks, yt_descr = self._find_tracks(track_list.tracks, yt_search)
+
+        title = track_list.title
+        is_public = True
+        new_tracks = [v for k, v in yt_tracks.items()]
+        old_tracks = self._youtube_music.playlist_tracks(playlist_id).tracks
+
+        details_result = self._youtube_music.update_playlist_details(
+            playlist_id,
+            title,
+            yt_descr,
+            is_public,
+        )
+        tracks_result = self._youtube_music.update_playlist_tracks(
+            playlist_id,
+            new_tracks,
+            old_tracks,
+        )
+
+        self._logger.info(
+            f"Youtube music update"
+            f"details {'succeeded' if details_result else 'failed'} and "
+            f"tracks {'succeeded' if tracks_result else 'failed'}."
+        )

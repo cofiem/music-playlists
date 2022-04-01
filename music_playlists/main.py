@@ -1,6 +1,4 @@
 import logging
-from argparse import ArgumentParser
-
 
 from music_playlists.process import Process
 
@@ -11,18 +9,5 @@ logging.basicConfig(
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(
-        description="Generate playlists.",
-    )
-    parser.add_argument(
-        "activity",
-        choices=["generate", "init"],
-        help="the activity to run",
-    )
-    args = parser.parse_args()
-
-    processing = Process()
-    if args.activity == "generate":
-        processing.run(processing.default_settings)
-    elif args.activity == "init":
-        processing.initialise(processing.default_settings)
+    p = Process()
+    p.run()

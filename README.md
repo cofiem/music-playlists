@@ -106,7 +106,6 @@ The script requires some environment variables to run.
     - `YOUTUBE_MUSIC_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED`
     - `YOUTUBE_MUSIC_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED`
     - `YOUTUBE_MUSIC_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS`
-    - `YOUTUBE_MUSIC_PLAYLIST_ID_SOUNDCLOUD_TRENDING_AUS`
 
 
 ### Spotify
@@ -121,18 +120,11 @@ from the `/authorize` endpoint
     - `SPOTIFY_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED`
     - `SPOTIFY_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED`
     - `SPOTIFY_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS`
-    - `SPOTIFY_PLAYLIST_ID_SOUNDCLOUD_TRENDING_AUS`
 
 
 ### Last.fm
 
 - `LASTFM_AUTH_API_KEY` - the Last.fm [API Key](https://www.last.fm/api/)
-
-
-### SoundCloud
-
-- `SOUNDCLOUD_CLIENT_ID` - the SoundCloud [App Client Id](https://soundcloud.com/you/apps)
-
 
 ## Development
 
