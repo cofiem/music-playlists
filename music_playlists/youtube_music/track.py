@@ -12,13 +12,13 @@ from music_playlists.youtube_music.thumbnail import Thumbnail
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass
 class Track:
-    video_id: str = field(metadata=config(field_name="videoId"))
     title: str
     artists: list[Artist]
     duration: str
     duration_seconds: int
     thumbnails: list[Thumbnail]
     is_explicit: bool = field(metadata=config(field_name="isExplicit"))
+    video_id: Optional[str] = field(metadata=config(field_name="videoId"), default=None)
     views: Optional[str] = None
     album: Optional[Album] = None
     feedback_tokens: Optional[Feedback] = field(

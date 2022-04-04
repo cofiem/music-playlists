@@ -15,7 +15,7 @@ class Downloader:
         else:
             backend = SQLiteCache("http_cache", use_memory=True, timeout=timeout)
 
-        expire_after = timedelta(hours=6)
+        expire_after = timedelta(days=1.5)
         self._session = CachedSession(
             backend=backend,
             timeout=timeout,
