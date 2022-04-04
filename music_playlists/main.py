@@ -8,6 +8,10 @@ logging.basicConfig(
 )
 
 
-if __name__ == "__main__":
+def main():
     p = Process()
     p.run()
+
+
+if __name__ == "__main__":
+    main()

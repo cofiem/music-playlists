@@ -25,7 +25,7 @@ class Process:
         self._settings = Settings()
         s = self._settings
 
-        self._base_path = Path(s.base_path)
+        self._base_path = Path(s.base_path).resolve()
         self._time_zone = pytz.timezone(s.time_zone)
         tz = self._time_zone
 
