@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional
 
 from dataclasses_json import dataclass_json, Undefined, config
 
@@ -17,7 +18,7 @@ class Playlist:
     description: str
     author: Author
     track_count: int = field(metadata=config(field_name="trackCount"))
-    duration: str
-    duration_seconds: int
+    duration: Optional[str]
+    duration_seconds: Optional[int]
     suggestions_token: str
     tracks: list[Track]
