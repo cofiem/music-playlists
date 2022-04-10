@@ -18,7 +18,7 @@ class Playlist:
     description: str
     author: Author
     track_count: int = field(metadata=config(field_name="trackCount"))
-    duration: Optional[str]
-    duration_seconds: Optional[int]
     suggestions_token: str
     tracks: list[Track]
+    duration: Optional[str] = None
+    duration_seconds: Optional[int] = None

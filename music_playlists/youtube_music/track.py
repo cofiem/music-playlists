@@ -14,10 +14,10 @@ from music_playlists.youtube_music.thumbnail import Thumbnail
 class Track:
     title: str
     artists: list[Artist]
-    duration: Optional[str]
-    duration_seconds: Optional[int]
     thumbnails: list[Thumbnail]
     is_explicit: bool = field(metadata=config(field_name="isExplicit"))
+    duration: Optional[str] = None
+    duration_seconds: Optional[int] = None
     video_id: Optional[str] = field(metadata=config(field_name="videoId"), default=None)
     views: Optional[str] = None
     album: Optional[Album] = None
