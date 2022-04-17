@@ -210,7 +210,7 @@ class Manage:
     def most_played(self, track_list: TrackList) -> TrackList:
         groups = {}
         for track in track_list.tracks:
-            key = "-".join(track.artists + [track.title])
+            key = "-".join([i for i in track.artists + [track.title] if i])
             if key not in groups:
                 groups[key] = []
             groups[key].append(track)
