@@ -10,7 +10,7 @@ ytmusicapi = "^0.21.0"
 requests = "^2.25.1"
 boltons = "^21.0.0"
 pytz = "^2022.1"
-lxml = "^4.6.5"
+lxml = "^4.9.1"
 requests-cache = "^0.9.3"
 dataclasses-json = "^0.5.7"
 
