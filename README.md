@@ -96,8 +96,7 @@ The script requires some environment variables to run.
 
 ### YouTube Music
 
-- `YOUTUBE_MUSIC_AUTH_CONFIG` - the contents of the `headers_auth.json` config file 
-  from [these instructions](https://ytmusicapi.readthedocs.io/en/latest/setup.html)
+- `YOUTUBE_MUSIC_AUTH_CONFIG` - the `json` content from [these instructions](https://ytmusicapi.readthedocs.io/en/stable/setup/browser.html#manual-file-creation)
 - The YouTube Music playlist ids:
     - `YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED`
     - `YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED`

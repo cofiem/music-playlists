@@ -1,0 +1,10 @@
+ytmusicapi==1.8.2
+requests==2.32.3
+boltons==24.0.0
+pytz==2024.2
+lxml==5.3.0
+requests-cache==1.2.1
+dataclasses-json==0.6.7
+beartype==0.19.0
+attrs==24.2.0
+cattrs==24.1.2

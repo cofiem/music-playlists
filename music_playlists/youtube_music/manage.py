@@ -1,19 +1,20 @@
 import logging
-from typing import Optional
+
+from beartype import beartype
 
 from music_playlists.downloader import Downloader
-from music_playlists.intermediate.track import Track as ImmTrack
-from music_playlists.intermediate.track_list import TrackList
+from music_playlists.intermediate.models import TrackList, Track as Track
+from music_playlists.intermediate.serialization import c
+from music_playlists.youtube_music import models
 from music_playlists.youtube_music.client import Client
-from music_playlists.youtube_music.playlist import Playlist
-from music_playlists.youtube_music.track import Track
 
 
+logger = logging.getLogger("youtube-music-manage")
+
+
+@beartype
 class Manage:
-
     code = "youtube-music"
-
-    _logger = logging.getLogger(code)
 
     def __init__(self, downloader: Downloader, client: Client):
         self._downloader = downloader
@@ -24,17 +25,15 @@ class Manage:
     def client(self):
         return self._client
 
-    def playlist_tracks(
-        self, playlist_id: str, limit: Optional[int] = 100
-    ) -> TrackList:
-        self._logger.info("Get playlist tracks from youtube music.")
+    def playlist_tracks(self, playlist_id: str, limit: int | None = 100) -> TrackList:
+        logger.info("Get playlist tracks from youtube music.")
 
         if limit is None:
             raw = self._client.api.get_playlist(playlist_id)
         else:
             raw = self._client.api.get_playlist(playlist_id, limit)
 
-        pl = Playlist.from_dict(raw)
+        pl = c.structure(raw, models.Playlist)
         results = [self._convert_track(t) for t in pl.tracks]
         return TrackList(title=None, type=TrackList.type_ordered(), tracks=results)
 
@@ -42,22 +41,22 @@ class Manage:
         raw = self._client.api.search(
             query=query, filter="songs", limit=limit, ignore_spelling=False
         )
-        ts = Track.schema().load(raw, many=True)
+        ts = c.structure(raw, list[models.Track])
         results = [self._convert_track(t) for t in ts]
         return TrackList(title=None, type=TrackList.type_ordered(), tracks=results)
 
     def update_playlist_tracks(
-        self, playlist_id: str, new_tracks: list[ImmTrack], old_tracks: list[ImmTrack]
+        self, playlist_id: str, new_tracks: list[Track], old_tracks: list[Track]
     ) -> bool:
-        self._logger.info("Update youtube music playlist tracks.")
+        logger.info("Update youtube music playlist tracks.")
 
         if old_tracks:
             result = self._client.api.remove_playlist_items(
                 playlist_id,
                 [
                     {
-                        "videoId": t.raw.video_id,
-                        "setVideoId": t.raw.set_video_id,
+                        "videoId": t.raw.videoId,
+                        "setVideoId": t.raw.setVideoId,
                     }
                     for t in old_tracks
                 ],
@@ -68,7 +67,7 @@ class Manage:
 
         result = self._client.api.add_playlist_items(
             playlist_id,
-            [t.raw.video_id for t in new_tracks],
+            [t.raw.videoId for t in new_tracks],
             source_playlist=None,
             duplicates=False,
         )
@@ -79,7 +78,7 @@ class Manage:
     def update_playlist_details(
         self, playlist_id: str, title: str, description: str, is_public: bool
     ):
-        self._logger.info("Update youtube music playlist details.")
+        logger.info("Update youtube music playlist details.")
 
         result = self._client.api.edit_playlist(
             playlistId=playlist_id,
@@ -89,8 +88,8 @@ class Manage:
         )
         return result == "STATUS_SUCCEEDED"
 
-    def _convert_track(self, item: Track):
-        return ImmTrack(
+    def _convert_track(self, item: models.Track):
+        return Track(
             title=item.title,
             artists=[a.name for a in item.artists],
             origin_code=self.code,

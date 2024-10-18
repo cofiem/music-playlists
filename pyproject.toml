@@ -1,28 +1,17 @@
-[tool.poetry]
-name = "music-playlists"
-version = "0.1.0"
-description = "Generates streaming music playlists create from various song charts."
-authors = ["Mark Cottman-Fields <cofiem@gmail.com>"]
-
-[tool.poetry.dependencies]
-python = "^3.9"
-ytmusicapi = "^0.21.0"
-requests = "^2.25.1"
-boltons = "^21.0.0"
-pytz = "^2022.1"
-lxml = "^4.6.5"
-requests-cache = "^0.9.3"
-dataclasses-json = "^0.5.7"
-
-[tool.poetry.dev-dependencies]
-black = "^22.1.0"
-coverage = "^6.3.2"
-requests-mock = "^1.9.2"
-pytest = "^7.1.1"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry.scripts]
-music-playlists = 'music_playlists.main:main'
+[project]
+name = "music-playlists"
+description = "Generates streaming music playlists create from various song charts."
+version = "0.2.0"
+dynamic = ["readme", "dependencies", "optional-dependencies"]
+
+[project.scripts]
+music-playlists = "music_playlists.main:main"
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"] }
+dependencies = { file = "requirements.txt" }
+optional-dependencies = { dev = { file = ["requirements-dev.txt"] } }

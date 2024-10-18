@@ -2,17 +2,16 @@ import base64
 import logging
 import secrets
 import webbrowser
-from typing import Optional
 from urllib.parse import urlencode
 
 from requests import Response, codes
 
 from music_playlists.downloader import Downloader
 
+logger = logging.getLogger("spotify-client")
+
 
 class Client:
-    _logger = logging.getLogger("spotify-client")
-
     auth_header = "Authorization"
 
     def __init__(
@@ -21,8 +20,8 @@ class Client:
         redirect_uri: str,
         client_id: str,
         client_secret: str,
-        refresh_token: Optional[str] = None,
-        access_token: Optional[str] = None,
+        refresh_token: str | None = None,
+        access_token: str | None = None,
     ):
         self._downloader = downloader
         self._redirect_uri = redirect_uri
@@ -60,7 +59,7 @@ class Client:
             self._get_refresh_token()
 
     def _get_access_token(self) -> None:
-        self._logger.info("Login using Spotify refresh token.")
+        logger.info("Login using Spotify refresh token.")
 
         data = {"grant_type": "refresh_token", "refresh_token": self._refresh_token}
         basic_auth = self._login_client_auth(self._client_id, self._client_secret)
@@ -73,7 +72,7 @@ class Client:
         self._access_token = r.json().get("access_token")
 
     def _get_refresh_token(self) -> None:
-        self._logger.info("Login using Spotify authorisation flow.")
+        logger.info("Login using Spotify authorisation flow.")
 
         auth_qs = urlencode(
             {
@@ -105,9 +104,7 @@ class Client:
         self._refresh_token = response.get("refresh_token")
 
         expires_in = response.get("expires_in")
-        self._logger.info(
-            f"Spotify access token expires in {expires_in / 60.0 / 60.0} hours"
-        )
+        logger.info(f"Spotify access token expires in {expires_in / 60.0 / 60.0} hours")
 
     def _login_client_auth(self, client_id: str, client_secret: str):
         basic = f"{client_id}:{client_secret}"

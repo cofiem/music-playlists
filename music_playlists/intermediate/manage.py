@@ -1,15 +1,13 @@
 import logging
-from itertools import groupby
 from typing import Optional
 
-from boltons.strutils import slugify
+from beartype import beartype
 
-from music_playlists.intermediate.track import Track
-from music_playlists.intermediate.track_list import TrackList
+from music_playlists.intermediate.models import TrackList, Track
 
 
+@beartype
 class Manage:
-
     code = "intermediate"
 
     _logger = logging.getLogger(code)
@@ -109,13 +107,13 @@ class Manage:
                 return other
 
             # for debugging
-            # self._logger.info(
+            # logger.info(
             #     f"Track '{a_title}' '{a_artists}' does not match '{b_title}' '{b_artists}'"
             # )
 
         # for debugging
         # count = len(available)
-        # self._logger.info(f"No match in {count} for track {track}")
+        # logger.info(f"No match in {count} for track {track}")
 
         return None
 

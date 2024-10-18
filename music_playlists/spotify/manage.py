@@ -1,20 +1,20 @@
 import logging
 
+from beartype import beartype
 from requests import Response, codes
 
 from music_playlists.downloader import Downloader
-from music_playlists.intermediate.track import Track as ImmTrack
-from music_playlists.intermediate.track_list import TrackList
+from music_playlists.intermediate.models import TrackList, Track
+from music_playlists.intermediate.serialization import c
 from music_playlists.spotify.client import Client
-from music_playlists.spotify.track import Track
-from music_playlists.spotify.tracks import Tracks
+from music_playlists.spotify import models
+
+logger = logging.getLogger("spotify-manage")
 
 
+@beartype
 class Manage:
-
     code = "spotify"
-
-    _logger = logging.getLogger(code)
 
     def __init__(self, downloader: Downloader, client: Client):
         self._downloader = downloader
@@ -30,10 +30,10 @@ class Manage:
 
     def playlist_tracks(
         self, playlist_id: str, limit: int = 100, offset: int = 0, market: str = "AU"
-    ) -> Tracks:
+    ) -> models.Tracks:
         """Get the tracks in a playlist."""
 
-        self._logger.info("Get playlist tracks from spotify.")
+        logger.info("Get playlist tracks from spotify.")
 
         if not playlist_id:
             raise ValueError()
@@ -54,7 +54,9 @@ class Manage:
         headers = {self._client.auth_header: self._client.auth_value}
         r = self._session.get(url, params=params, headers=headers)
         self._check_status(r)
-        return Tracks.from_dict({"items": [t["track"] for t in r.json()["items"]]})
+        return c.structure(
+            {"items": [t["track"] for t in r.json()["items"]]}, models.Tracks
+        )
 
     def search_tracks(
         self, query: str, limit: int = 5, offset: int = 0, market: str = "AU"
@@ -77,13 +79,13 @@ class Manage:
         headers = {self._client.auth_header: self._client.auth_value}
         r = self._session.get(url, params=params, headers=headers)
         self._check_status(r)
-        ts = Tracks.from_dict(r.json()["tracks"])
+        ts = c.structure(r.json()["tracks"], models.Tracks)
         results = [self._convert_track(t) for t in ts.items]
         return TrackList(title=None, type=TrackList.type_ordered(), tracks=results)
 
-    def update_playlist_tracks(self, playlist_id: str, tracks: list[ImmTrack]):
+    def update_playlist_tracks(self, playlist_id: str, tracks: list[Track]):
         """Replace songs in a playlist."""
-        self._logger.info("Update spotify playlist tracks.")
+        logger.info("Update spotify playlist tracks.")
 
         url = f"{self._url_api}/playlists/{playlist_id}/tracks"
         params = {"uris": [t.raw.uri for t in tracks]}
@@ -91,12 +93,12 @@ class Manage:
         r = self._session.put(url, json=params, headers=headers)
         self._check_status(r)
         # snapshot_id = r.get('snapshot_id')
-        return r.status_code == codes.created
+        return r.status_code in [codes.created, codes.ok]
 
     def update_playlist_details(
         self, playlist_id: str, title: str, description: str, is_public: bool
     ):
-        self._logger.info("Get spotify playlist details.")
+        logger.info("Get spotify playlist details.")
 
         url = f"{self._url_api}/playlists/{playlist_id}"
         data = {
@@ -117,8 +119,8 @@ class Manage:
                 f"status '{r.status_code}' content '{r.text}'."
             )
 
-    def _convert_track(self, item: Track):
-        return ImmTrack(
+    def _convert_track(self, item: models.Track):
+        return Track(
             title=item.name,
             artists=[a.name for a in item.artists],
             origin_code=self.code,

@@ -1,8 +1,12 @@
-from dataclasses import dataclass
 from typing import List, Any, Dict
 
+import attrs
+from beartype import beartype
 
-@dataclass
+
+@beartype
+@beartype
+@attrs.frozen
 class Track:
     """A track that may be part of a playlist."""
 

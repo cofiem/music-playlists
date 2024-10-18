@@ -1,6 +1,9 @@
 import os
 
+from beartype import beartype
 
+
+@beartype
 class Settings:
     @property
     def time_zone(self):

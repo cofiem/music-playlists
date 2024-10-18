@@ -1,10 +1,12 @@
 from datetime import timedelta
 from pathlib import Path
 
+from beartype import beartype
 from requests import Session
 from requests_cache import CachedSession, SQLiteCache
 
 
+@beartype
 class Downloader:
     """Provides a shared downloader that caches resources."""
 

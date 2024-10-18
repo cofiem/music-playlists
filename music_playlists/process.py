@@ -3,11 +3,11 @@ from datetime import datetime
 from pathlib import Path
 
 import pytz
+from beartype import beartype
 
 from music_playlists.abc_radio.manage import Manage as AbcRadioManage
 from music_playlists.downloader import Downloader
-from music_playlists.intermediate.track import Track
-from music_playlists.intermediate.track_list import TrackList
+from music_playlists.intermediate.models import TrackList, Track
 from music_playlists.last_fm.manage import Manage as LastFmManage
 from music_playlists.radio_4zzz.manage import Manage as Radio4zzzManage
 from music_playlists.settings import Settings
@@ -17,10 +17,11 @@ from music_playlists.youtube_music.client import Client as YouTubeMusicClient
 from music_playlists.youtube_music.manage import Manage as YouTubeMusicManage
 from music_playlists.intermediate.manage import Manage as IntermediateManage
 
+logger = logging.getLogger("music-playlists")
 
+
+@beartype
 class Process:
-    _logger = logging.getLogger("music-playlists")
-
     def __init__(self):
         self._settings = Settings()
         s = self._settings
@@ -50,7 +51,7 @@ class Process:
         self._intermediate = IntermediateManage()
 
     def run(self):
-        self._logger.info("Updating music playlists.")
+        logger.info("Updating music playlists.")
 
         self._spotify.client.login()
         self._youtube_music.client.login()
@@ -96,7 +97,7 @@ class Process:
             radio_4zzz, s.playlist_youtube_music_radio_4zzz_most_played
         )
 
-        self._logger.info("Finished updating music playlists")
+        logger.info("Finished updating music playlists")
 
     def _find_tracks(self, tracks: list[Track], search_func):
         total_count = 0
@@ -122,10 +123,8 @@ class Process:
             if query_match:
                 found_count += 1
             else:
-                self._logger.warning(
-                    f"No match in {len(queries)} queries " f"for track {track}"
-                )
-                self._logger.warning(
+                logger.warning(f"No match in {len(queries)} queries for track {track}")
+                logger.warning(
                     f"No match in {service_found_count} service tracks "
                     f"for queries {queries}"
                 )
@@ -135,7 +134,7 @@ class Process:
         found_info = (
             f"Found {found_count} of {total_count} songs ({tracks_percent:.0%})"
         )
-        self._logger.warning(found_info)
+        logger.warning(found_info)
 
         # build text for streaming service playlists
         descr = " ".join(
@@ -143,7 +142,7 @@ class Process:
                 "This playlist was generated on "
                 f"{current_datetime.strftime('%a, %d %b %Y')}.",
                 f"{found_info} from the source playlist.",
-                "For more information: https://github.com/cofiem/music-playlists",
+                "From: https://github.com/cofiem/music-playlists",
             ]
         )
 
@@ -151,7 +150,7 @@ class Process:
 
     def _update_spotify(self, track_list: TrackList, playlist_id: str):
         # spotify
-        self._logger.info("Find tracks on Spotify.")
+        logger.info("Find tracks on Spotify.")
         sp_search = self._spotify.search_tracks
         sp_tracks, sp_descr = self._find_tracks(track_list.tracks, sp_search)
 
@@ -170,15 +169,13 @@ class Process:
             tracks,
         )
 
-        self._logger.info(
-            f"Spotify update "
-            f"details {'succeeded' if details_result else 'failed'} and "
-            f"tracks {'succeeded' if tracks_result else 'failed'}."
+        logger.info(
+            f"Spotify update details {'succeeded' if details_result else 'failed'} and tracks {'succeeded' if tracks_result else 'failed'}."
         )
 
     def _update_youtube_music(self, track_list: TrackList, playlist_id: str):
         # youtube music
-        self._logger.info("Find tracks on YouTube Music.")
+        logger.info("Find tracks on YouTube Music.")
         yt_search = self._youtube_music.search_tracks
         yt_tracks, yt_descr = self._find_tracks(track_list.tracks, yt_search)
 
@@ -199,8 +196,6 @@ class Process:
             old_tracks,
         )
 
-        self._logger.info(
-            f"Youtube music update"
-            f"details {'succeeded' if details_result else 'failed'} and "
-            f"tracks {'succeeded' if tracks_result else 'failed'}."
+        logger.info(
+            f"Youtube music update details {'succeeded' if details_result else 'failed'} and tracks {'succeeded' if tracks_result else 'failed'}."
         )

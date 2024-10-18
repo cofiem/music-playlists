@@ -2,18 +2,19 @@ import logging
 from datetime import tzinfo
 
 import requests
+from beartype import beartype
 
 from music_playlists.downloader import Downloader
-from music_playlists.intermediate.track import Track as ImmTrack
-from music_playlists.intermediate.track_list import TrackList
-from music_playlists.last_fm.track import Track
+from music_playlists.intermediate.models import TrackList, Track
+from music_playlists.intermediate.serialization import c
+from music_playlists.last_fm import models
+
+logger = logging.getLogger("last-fm-manage")
 
 
+@beartype
 class Manage:
-
     code = "last-fm"
-
-    _logger = logging.getLogger(code)
 
     def __init__(self, downloader: Downloader, time_zone: tzinfo, api_key: str):
         self._dl = downloader
@@ -22,15 +23,13 @@ class Manage:
         self._url = "https://ws.audioscrobbler.com/2.0"
 
     def aus_top_tracks(self) -> TrackList:
-        self._logger.info("Get LastFM Top Tracks Australia.")
+        logger.info("Get LastFM Top Tracks Australia.")
 
         country = "australia"
 
         top = self.top_tracks(country)
         results = [
-            ImmTrack(
-                title=t.name, artists=[t.artist.name], origin_code=self.code, raw=t
-            )
+            Track(title=t.name, artists=[t.artist.name], origin_code=self.code, raw=t)
             for t in top
         ]
         tl = TrackList(
@@ -46,7 +45,7 @@ class Manage:
         output_format: str = "json",
         limit: bool = "50",
         page: str = "1",
-    ) -> list[Track]:
+    ) -> list[models.Track]:
         params = {
             "api_key": self._api_key,
             "method": "geo.gettoptracks",
@@ -57,6 +56,6 @@ class Manage:
         }
         r = self._dl.get_session.get(self._url, params=params)
         if r.status_code == requests.codes.ok and r.text:
-            return Track.schema().load(r.json()["tracks"]["track"], many=True)
+            return c.structure(r.json()["tracks"]["track"], list[models.Track])
         else:
             raise ValueError(str(r))

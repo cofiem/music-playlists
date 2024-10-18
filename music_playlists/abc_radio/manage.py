@@ -2,29 +2,26 @@ import logging
 from datetime import date, datetime, timedelta
 
 import requests
+from beartype import beartype
 
-from music_playlists.abc_radio.play import Play
-from music_playlists.abc_radio.plays import Plays
-from music_playlists.abc_radio.search import Search
-from music_playlists.abc_radio.unearthed_track import UnearthedTrack
-from music_playlists.abc_radio.unearthed_tracks_showcase import UnearthedTracksShowcase
+from music_playlists.abc_radio import models
 from music_playlists.downloader import Downloader
-from music_playlists.intermediate.track import Track
-from music_playlists.intermediate.track_list import TrackList
+from music_playlists.intermediate.models import TrackList, Track
+from music_playlists.intermediate.serialization import c
+
+logger = logging.getLogger("abc-radio-manage")
 
 
+@beartype
 class Manage:
-
     code = "abc-radio"
-
-    _logger = logging.getLogger(code)
 
     service_doublej = "doublej"
     service_triplej = "triplej"
     service_jazz = "jazz"
     service_classic = "classic"
 
-    def __init__(self, downloader: Downloader, time_zone: datetime.tzinfo):
+    def __init__(self, downloader: Downloader, time_zone):
         self._dl = downloader
         self._tz = time_zone
         self._url_abc_radio = "https://music.abcradio.net.au/api/v1"
@@ -39,7 +36,7 @@ class Manage:
         # https://www.abc.net.au/triplejunearthed/music/
 
     def triplej_most_played(self) -> TrackList:
-        self._logger.info("Get ABC Triple J Most Played.")
+        logger.info("Get ABC Triple J Most Played.")
 
         current_time = datetime.now(tz=self._tz)
         current_day = current_time.date()
@@ -58,7 +55,7 @@ class Manage:
         return tl
 
     def doublej_most_played(self) -> TrackList:
-        self._logger.info("Get ABC Double J Most Played.")
+        logger.info("Get ABC Double J Most Played.")
 
         current_time = datetime.now(tz=self._tz)
         current_day = current_time.date()
@@ -77,12 +74,12 @@ class Manage:
         return tl
 
     def unearthed_most_played(self) -> TrackList:
-        self._logger.info("Get ABC Unearthed Most Played.")
+        logger.info("Get ABC Unearthed Most Played.")
 
         showcase = self.tracks_showcase()
-        first = self._convert_unearthed_track(showcase.track_of_the_day)
-        second = [self._convert_unearthed_track(t) for t in showcase.popular_tracks]
-        third = [self._convert_unearthed_track(t) for t in showcase.discover_tracks]
+        first = self._convert_unearthed_track(showcase.trackOfTheDay)
+        second = [self._convert_unearthed_track(t) for t in showcase.popularTracks]
+        third = [self._convert_unearthed_track(t) for t in showcase.discoverTracks]
         results = [first] + second + third
         tl = TrackList(
             title="Triple J Unearthed Weekly",
@@ -92,7 +89,7 @@ class Manage:
         return tl
 
     def classic_recently_played(self) -> TrackList:
-        self._logger.info("Get ABC Classic Recently Played.")
+        logger.info("Get ABC Classic Recently Played.")
 
         current_time = datetime.now(tz=self._tz)
         current_day = current_time.date()
@@ -123,7 +120,7 @@ class Manage:
         return tl
 
     def jazz_recently_played(self) -> TrackList:
-        self._logger.info("Get ABC Jazz Recently Played.")
+        logger.info("Get ABC Jazz Recently Played.")
 
         current_time = datetime.now(tz=self._tz)
         current_day = current_time.date()
@@ -161,7 +158,7 @@ class Manage:
         order: str = "desc",
         limit: int = 50,
         offset: int = 0,
-    ) -> Plays:
+    ) -> models.Plays:
         """Get the most played songs for a service."""
         params = {
             "order": order,
@@ -173,7 +170,7 @@ class Manage:
         }
         r = self._dl.get_session.get(self._url_recordings_plays, params=params)
         if r.status_code == requests.codes.ok and r.text:
-            return Plays.from_dict(r.json())
+            return c.structure(r.json(), models.Plays)
         else:
             raise ValueError(str(r))
 
@@ -185,7 +182,7 @@ class Manage:
         order: str = "desc",
         limit: int = 50,
         offset: int = 0,
-    ) -> Search:
+    ) -> models.Search:
         """Get the recently played songs for a service."""
         params = {
             "station": service,
@@ -197,19 +194,19 @@ class Manage:
         }
         r = self._dl.get_session.get(self._url_plays_search, params=params)
         if r.status_code == requests.codes.ok and r.text:
-            return Search.from_dict(r.json())
+            return c.structure(r.json(), models.Search)
         else:
             raise ValueError(str(r))
 
-    def tracks_showcase(self) -> UnearthedTracksShowcase:
+    def tracks_showcase(self) -> models.UnearthedTracksShowcase:
         """Get the unearthed featured tracks."""
         r = self._dl.get_session.get(self._url_tracks_showcase)
         if r.status_code == requests.codes.ok and r.text:
-            return UnearthedTracksShowcase.from_dict(r.json())
+            return c.structure(r.json(), models.UnearthedTracksShowcase)
         else:
             raise ValueError(str(r))
 
-    def _convert_plays(self, plays: Plays):
+    def _convert_plays(self, plays: models.Plays):
         result = []
         for recording in plays.items:
             if recording:
@@ -223,7 +220,7 @@ class Manage:
                 )
         return result
 
-    def _convert_play(self, item: Play):
+    def _convert_play(self, item: models.Play):
         if item.recording:
             return Track(
                 title=item.recording.title,
@@ -239,10 +236,10 @@ class Manage:
                 raw=item.release,
             )
 
-    def _convert_unearthed_track(self, item: UnearthedTrack):
+    def _convert_unearthed_track(self, item: models.UnearthedTrack):
         return Track(
             title=item.title,
-            artists=[item.artist.profile_name],
+            artists=[item.artist.profileName],
             origin_code=self.code,
             raw=item,
         )
