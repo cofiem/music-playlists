@@ -10,6 +10,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)-8s - %(name)s: %(message)s",
     level=logging.INFO,
 )
+logging.getLogger("requests_cache").setLevel(logging.INFO)
 
 
 @beartype

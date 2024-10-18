@@ -4,12 +4,12 @@ from beartype import beartype
 
 from music_playlists.intermediate.models import TrackList, Track
 
+logger = logging.getLogger("intermediate")
+
 
 @beartype
 class Manage:
     code = "intermediate"
-
-    _logger = logging.getLogger(code)
 
     def queries(self, track: Track):
         title = str(track.title)
@@ -24,6 +24,8 @@ class Manage:
         title, artists = self._split_artists(title, artists)
         # title constants
         title = self._known_title_constants(title)
+        # different spellings
+        title = self._different_spellings(title)
         # punctuation
         title = self._normalise_punctuation(title)
         artists = [self._normalise_punctuation(i) for i in artists]
@@ -49,6 +51,9 @@ class Manage:
             b_artists = list(other.artists)
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "exact", a_title, a_artists, b_title, b_artists, track, other
+                )
                 return other
 
             # spaces
@@ -58,6 +63,9 @@ class Manage:
             b_artists = [self._collapse_spaces(i) for i in b_artists]
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "spaces", a_title, a_artists, b_title, b_artists, track, other
+                )
                 return other
 
             # case
@@ -67,6 +75,9 @@ class Manage:
             b_artists = [self._normalise_case(i) for i in b_artists]
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "case", a_title, a_artists, b_title, b_artists, track, other
+                )
                 return other
 
             # split artists
@@ -74,6 +85,15 @@ class Manage:
             b_title, b_artists = self._split_artists(b_title, b_artists)
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "split artists",
+                    a_title,
+                    a_artists,
+                    b_title,
+                    b_artists,
+                    track,
+                    other,
+                )
                 return other
 
             # title constants
@@ -81,6 +101,19 @@ class Manage:
             b_title = self._known_title_constants(b_title)
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "constants", a_title, a_artists, b_title, b_artists, track, other
+                )
+                return other
+
+            # different spellings
+            a_title = self._different_spellings(a_title)
+            b_title = self._different_spellings(b_title)
+
+            if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "spelling", a_title, a_artists, b_title, b_artists, track, other
+                )
                 return other
 
             # punctuation
@@ -90,6 +123,9 @@ class Manage:
             b_artists = [self._normalise_punctuation(i) for i in b_artists]
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "puncuation", a_title, a_artists, b_title, b_artists, track, other
+                )
                 return other
 
             # featured artists
@@ -97,22 +133,37 @@ class Manage:
             b_title, b_artists = self._featured_artists(b_title, b_artists)
 
             if self._compare(a_title, a_artists, b_title, b_artists):
+                self._match_log(
+                    "featured", a_title, a_artists, b_title, b_artists, track, other
+                )
                 return other
 
             # extra artists
             if self._compare_allow_extra_artists(
                 a_title, a_artists, b_title, b_artists
             ):
+                self._match_log(
+                    "extra artists",
+                    a_title,
+                    a_artists,
+                    b_title,
+                    b_artists,
+                    track,
+                    other,
+                )
                 return other
 
-            # for debugging
-            # logger.info(
-            #     f"Track '{a_title}' '{a_artists}' does not match '{b_title}' '{b_artists}'"
-            # )
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(
+                    "No match for track '%s' '%s' in '%s' '%s'",
+                    a_title,
+                    a_artists,
+                    b_title,
+                    b_artists,
+                )
 
-        # for debugging
-        # count = len(available)
-        # logger.info(f"No match in {count} for track {track}")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("No match in %s for track %s", len(available), track)
 
         return None
 
@@ -120,7 +171,7 @@ class Manage:
         self, a_title: str, a_artists: list[str], b_title: str, b_artists: list[str]
     ):
         title = a_title == b_title
-        artists = a_artists == b_artists
+        artists = sorted(a_artists) == sorted(b_artists)
         return title and artists
 
     def _remove_chars(self, chars: str, value: str):
@@ -155,31 +206,33 @@ class Manage:
     def _featured_artists(self, title: str, artists: list[str]):
         sep = ", "
 
-        prefixes = ["feat.", "with", "ft."]
+        prefixes = ["feat.", "with", "ft.", "featuring"]
+        delimiters = [("(", ")"), ("{", "}"), ("[", "]"), ('', '')]
         for prefix in prefixes:
-            start = f"({prefix} "
-            if start not in title or not title.endswith(")"):
-                continue
+            for delim_start, delim_end in delimiters:
+                start = f"{delim_start}{prefix} "
+                if start not in title or not title.endswith(delim_end):
+                    continue
 
-            find_index = title.index(start)
-            artist_index = find_index + len(start)
+                find_index = title.index(start)
+                artist_index = find_index + len(start)
 
-            artists_str = title[artist_index:-1].replace(" & ", sep)
-            artists_split = artists_str.split(sep)
+                artists_str = title[artist_index:-1].replace(" & ", sep)
+                artists_split = artists_str.split(sep)
 
-            r_title = title[0:find_index].strip()
-            r_artists = list(artists)
+                r_title = title[0:find_index].strip()
+                r_artists = list(artists)
 
-            for a in artists_split:
-                a = a.strip()
-                if a not in r_artists:
-                    r_artists.append(a)
-            return r_title, r_artists
+                for a in artists_split:
+                    a = a.strip()
+                    if a not in r_artists:
+                        r_artists.append(a)
+                return r_title, r_artists
 
         return title, artists
 
     def _normalise_punctuation(self, value: str):
-        chars = r"'’?#/*-"
+        chars = r"'’?#/*-!"
         result = self._remove_chars(chars, value)
         return result
 
@@ -222,3 +275,32 @@ class Manage:
             type=TrackList.type_ordered(),
             tracks=[ts[0] for k, c, ts in raw],
         )
+
+    def _different_spellings(self, title: str):
+        spellings = {
+            "crying": ["cryin"],
+        }
+        title_split = title.split(" ")
+        for replacement, alternates in spellings.items():
+            for alternate in alternates:
+                for index, word in enumerate(title_split):
+                    if alternate == word:
+                        title_split[index] = replacement
+        return " ".join(title_split)
+
+    def _match_log(
+        self, name, a_title, a_artists, b_title, b_artists, track: Track, other: Track
+    ):
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Match for track '%s' '%s' in '%s' '%s' after '%s' (original track '%s' '%s'; other '%s' '%s')",
+                a_title,
+                a_artists,
+                b_title,
+                b_artists,
+                name,
+                track.title,
+                track.artists,
+                other.title,
+                other.artists,
+            )

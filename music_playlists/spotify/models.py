@@ -1,5 +1,4 @@
 from dataclasses import field
-from typing import Self
 
 import attrs
 from beartype import beartype
@@ -103,7 +102,7 @@ class Track:
     episode: bool | None = None
     track: bool | None = None
     restrictions: Restriction | None = None
-    linked_from: Self = None
+    linked_from: str = None
     available_markets: list[str] | None = None
 
 
