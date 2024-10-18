@@ -37,7 +37,7 @@ jobs:
           python -m pip install --upgrade .
 
       - name: Cache playlist requests
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: http_cache.sqlite
           key: ${{ runner.os }}-httpcache
