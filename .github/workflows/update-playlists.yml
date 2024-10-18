@@ -40,7 +40,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: http_cache.sqlite
-          key: ${{ runner.os }}-httpcache
+          key: httpcache-${{ runner.os }}-${{ hashFiles('**/http_cache.sqlite') }}
+          restore-keys: |
+            ${{ runner.os }}-httpcache
+            httpcache-${{ runner.os }}
+            httpcache
 
       - name: Update playlists
         env:
