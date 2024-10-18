@@ -88,6 +88,7 @@ class Recording:
     releases: list[Release]
     artwork: list[Artwork]
     links: list[Link]
+    countdown: str | None = None
 
 
 @beartype
