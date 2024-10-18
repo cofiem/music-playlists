@@ -2,7 +2,7 @@ import functools
 import json
 import logging
 from pathlib import Path
-from typing import Optional
+
 
 import ytmusicapi.helpers
 from ytmusicapi import YTMusic
@@ -17,7 +17,7 @@ class Client:
         self._downloader = downloader
         self._credentials = self._build_expected_credentials(credentials)
         self._session = self._downloader.get_session
-        self._api: Optional[YTMusic] = None
+        self._api: YTMusic | None = None
 
     @property
     def api(self):

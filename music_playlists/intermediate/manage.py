@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from beartype import beartype
 
@@ -41,7 +40,7 @@ class Manage:
 
         return results
 
-    def match(self, track: Track, available: list[Track]) -> Optional[Track]:
+    def match(self, track: Track, available: list[Track]) -> Track | None:
         for other in available[:5]:
             # exact
             a_title = str(track.title)

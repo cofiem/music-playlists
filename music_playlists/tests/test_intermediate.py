@@ -1,5 +1,3 @@
-from typing import Optional
-
 import pytest as pytest
 
 from music_playlists.intermediate.manage import Manage
@@ -102,7 +100,7 @@ from music_playlists.intermediate.models import Track
         ),
     ],
 )
-def test_match(track: dict, others: list[dict], expected: Optional[dict]):
+def test_match(track: dict, others: list[dict], expected: dict | None):
     m = Manage()
 
     a = Track(

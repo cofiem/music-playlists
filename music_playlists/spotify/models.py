@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Optional
+from typing import Self
 
 import attrs
 from beartype import beartype
@@ -36,9 +36,9 @@ class Artist:
     type: str
     uri: str
     popularity: int | None = None
-    images: Optional[list[Image]] = None
-    genres: Optional[list[str]] = None
-    followers: Optional[list[Follower]] = None
+    images: list[Image] | None = None
+    genres: list[str] | None = None
+    followers: list[Follower] | None = None
 
 
 @beartype
@@ -56,8 +56,8 @@ class Album:
     type: str
     uri: str
     album_group: str | None = None
-    artists: Optional[list[Artist]] = None
-    available_markets: Optional[list[str]] = None
+    artists: list[Artist] | None = None
+    available_markets: list[str] | None = None
     is_playable: bool | None = None
 
 
@@ -89,8 +89,8 @@ class Track:
     type: str
     uri: str
     name: str | None = None
-    album: Optional[Album] = None
-    external_ids: Optional[ExternalId] = None
+    album: Album | None = None
+    external_ids: ExternalId | None = None
     popularity: int | None = None
     track_number: int | None = None
     is_local: bool | None = None
@@ -102,9 +102,9 @@ class Track:
     preview_url: str | None = None
     episode: bool | None = None
     track: bool | None = None
-    restrictions: Optional[Restriction] = None
-    linked_from: Optional["Track"] = None
-    available_markets: Optional[list[str]] = None
+    restrictions: Restriction | None = None
+    linked_from: Self = None
+    available_markets: list[str] | None = None
 
 
 @beartype

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import attrs
 from beartype import beartype
 
@@ -23,7 +21,7 @@ class Artwork:
     mini_synopsis: str | None
     short_synopsis: str | None
     medium_synopsis: str | None
-    sizes: Optional[list[Size]] = None
+    sizes: list[Size] | None = None
     width: int | None = None
     height: int | None = None
     type: str | None = None
@@ -72,7 +70,7 @@ class Release:
     links: list[Link]
     record_label: str | None
     release_year: str | None
-    artists: Optional[list[Artist]]
+    artists: list[Artist] | None
     release_album_id: str | None
     is_primary: bool | None
 
@@ -100,7 +98,7 @@ class Play:
     played_time: str
     service_id: str
     recording: Recording
-    release: Optional[Release]
+    release: Release | None = None
     count: int | None = None
 
 
@@ -136,7 +134,7 @@ class UnearthedArtist:
 
     profileName: str
     slug: str
-    image: Optional[UnearthedImage]
+    image: UnearthedImage | None = None
 
 
 @beartype
@@ -163,7 +161,7 @@ class UnearthedTrack:
     genres: list[str]
     webSourceFile: UnearthedSourceFile
     artist: UnearthedArtist
-    image: Optional[UnearthedImage]
+    image: UnearthedImage | None = None
 
 
 @beartype
