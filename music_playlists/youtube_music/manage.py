@@ -1,6 +1,7 @@
 import logging
 
 from beartype import beartype
+from ytmusicapi.exceptions import YTMusicServerError
 
 from music_playlists.downloader import Downloader
 from music_playlists.intermediate.models import TrackList, Track as Track
@@ -65,15 +66,19 @@ class Manage:
             if result != "STATUS_SUCCEEDED":
                 return False
 
-        result = self._client.api.add_playlist_items(
-            playlist_id,
-            [t.raw.videoId for t in new_tracks],
-            source_playlist=None,
-            duplicates=False,
-        )
-        if "status" not in result or result.get("status") != "STATUS_SUCCEEDED":
+        try:
+            result = self._client.api.add_playlist_items(
+                playlist_id,
+                [t.raw.videoId for t in new_tracks],
+                source_playlist=None,
+                duplicates=False,
+            )
+            if "status" not in result or result.get("status") != "STATUS_SUCCEEDED":
+                return False
+            return True
+        except YTMusicServerError:
+            logger.exception("YouTube Music error.")
             return False
-        return True
 
     def update_playlist_details(
         self, playlist_id: str, title: str, description: str, is_public: bool
