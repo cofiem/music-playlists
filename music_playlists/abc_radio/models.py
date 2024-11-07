@@ -83,7 +83,7 @@ class Recording:
     title: str
     metadata: str | None
     description: str | None
-    duration: int
+    duration: int | None
     artists: list[Artist]
     releases: list[Release]
     artwork: list[Artwork]

@@ -13,7 +13,7 @@ class Downloader:
     def __init__(self, store_path: Path = None):
         timeout = 30
         if store_path:
-            backend = SQLiteCache(store_path, timeout=timeout)
+            backend = SQLiteCache(store_path / 'http_cache.sqlite', timeout=timeout)
         else:
             backend = SQLiteCache("http_cache", use_memory=True, timeout=timeout)
 

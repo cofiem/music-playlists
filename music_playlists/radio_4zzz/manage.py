@@ -49,7 +49,7 @@ class Manage:
                 for t in self.playlist(e):
                     results.append(
                         ImmTrack(
-                            title=t.title,
+                            title=t.title or "",
                             artists=[t.artist],
                             origin_code=self.code,
                             raw=t,
