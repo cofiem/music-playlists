@@ -19,7 +19,7 @@ class Downloader:
 
     def __init__(
         self,
-        store_path: Path = None,
+        store_path: Path| None = None,
         expire_days: float | None = 1.5,
         timeout: int | None = 30,
     ):
