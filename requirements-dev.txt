@@ -1,5 +1,0 @@
-ruff==0.8.4
-coverage==7.6.9
-requests-mock==1.12.1
-pytest==8.3.4
-build==1.2.2

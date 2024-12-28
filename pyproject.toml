@@ -1,17 +1,171 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "music-playlists"
-description = "Generates streaming music playlists create from various song charts."
-version = "0.2.0"
-dynamic = ["readme", "dependencies", "optional-dependencies"]
+dynamic = ["version"]
+description = "Generates streaming music playlists from various song charts."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+keywords = []
+authors = [
+  { name = "Mark C", email = "cofiem@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "License :: OSI Approved :: Apache Software License",
+  "Environment :: Console",
+  "Topic :: Multimedia :: Sound/Audio",
+]
+dependencies = [
+  "click==8.1.8",
+  "ytmusicapi==1.9.1",
+  "requests==2.32.3",
+  "tzdata==2024.2",
+  "lxml==5.3.0",
+  "requests-cache==1.2.1",
+  "beartype==0.19.0",
+  "attrs==24.3.0",
+  "cattrs==24.1.2",
+  "rich==13.9.4",
+]
+
+[project.urls]
+Documentation = "https://github.com/cofiem/music-playlists#readme"
+Issues = "https://github.com/cofiem/music-playlists/issues"
+Source = "https://github.com/cofiem/music-playlists"
 
 [project.scripts]
-music-playlists = "music_playlists.main:main"
+music-playlists = "music_playlists.cli:music_playlists"
 
-[tool.setuptools.dynamic]
-readme = { file = ["README.md"] }
-dependencies = { file = "requirements.txt" }
-optional-dependencies = { dev = { file = ["requirements-dev.txt"] } }
+[tool.hatch.version]
+path = "src/music_playlists/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.12", "3.13"]
+
+[tool.hatch.envs.types]
+dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/music_playlists tests}"
+
+[tool.hatch.envs.hatch-static-analysis]
+dependencies = [
+  "ruff==0.8.4",
+]
+config-path = "none"
+
+[tool.coverage.run]
+source_pkgs = ["music_playlists", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/music_playlists/__about__.py",
+]
+
+[tool.coverage.paths]
+music_playlists = ["src/music_playlists", "*/music-playlists/src/music_playlists"]
+tests = ["tests", "*/music-playlists/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hatch",
+  ".hg",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "site-packages",
+  "venv",
+]
+
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+select = ["ALL"]
+ignore = [
+  "COM812",
+  "ISC001",
+  "D203", # one-blank-line-before-class
+  "D213", # multi-line-summary-second-line
+  "TD", # to do checks
+  "D", # doc strings
+  "ANN", # type annotations
+  "ERA001", # Found commented-out code
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"

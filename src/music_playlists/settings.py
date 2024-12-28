@@ -1,10 +1,18 @@
 import os
+import pathlib
+import tomllib
 
 from beartype import beartype
 
 
 @beartype
 class Settings:
+    def __init__(self):
+        self._p = pathlib.Path.cwd().joinpath(".env.toml")
+        self._data = {}
+        if self._p.exists():
+            self._data = tomllib.loads(self._p.read_text(encoding="utf-8"))
+
     @property
     def time_zone(self):
         return self._get_setting("MUSIC_PLAYLISTS_TIME_ZONE")
@@ -78,7 +86,13 @@ class Settings:
         return self._get_setting("YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED")
 
     def _get_setting(self, key: str):
-        value = os.getenv(key)
+        value = None
+        if self._data:
+            value = self._data.get(key)
+
+        if value is None:
+            value = os.getenv(key)
+
         if value is None:
             raise ValueError(f"Could not retrieve value for env var '{key}'.")
 

@@ -128,6 +128,6 @@ from the `/authorize` endpoint
 Local development can require running the script multiple times in quick succession. 
 This is not a great thing to do for web services. There is the possibility to cache output for each class.
 
-Change the cache setting in the Downloader in `main.py`.
+Enable the cache by setting the env var `MUSIC_PLAYLISTS_BASE_PATH`.
 
 With thanks to sigma67 for [ytmusicapi](https://github.com/sigma67/ytmusicapi).
