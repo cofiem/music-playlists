@@ -52,7 +52,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
       - name: Run pip audit
-        uses: pypa/gh-action-pip-audit@v1.1.0
+        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266
         continue-on-error: true
         with:
           inputs: '.'

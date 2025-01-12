@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: hynek/build-and-inspect-python-package@v2
+      - uses: hynek/build-and-inspect-python-package@14c7e53f5d033cfa99f7af916fa59a6f7f356394
         with:
           attest-build-provenance-github: 'true'
 
@@ -53,7 +53,7 @@ jobs:
           path: dist
 
       - name: Upload package to Test PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@67339c736fd9354cd4f8cb0b744f2b82a74b5c70
         with:
           repository-url: https://test.pypi.org/legacy/
           print-hash: true
@@ -81,7 +81,7 @@ jobs:
           path: dist
 
       - name: Upload package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@67339c736fd9354cd4f8cb0b744f2b82a74b5c70
         with:
           print-hash: true
           verbose: true
