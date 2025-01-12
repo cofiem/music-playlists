@@ -1,0 +1,48 @@
+name: Bug Report
+description: Create a report to help us improve
+title: "[Bug]: "
+labels:
+  - bug
+assignees:
+  - cofiem
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the problem
+      description: A summary of the problem you've seen.
+      placeholder: Tell us what you see!
+      value: "e.g. When the program is given these arguments, it does this action I don't want ..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce the behavior
+      description: Your step-by-step guide to help use reproduce the problem.
+      placeholder: Tell us what you see!
+      value: "e.g. Run using these arguments ...  Look in at the output in this folder ..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What do you expect to happen?
+      placeholder: Tell us what you want to see!
+      value: "e.g. Run using these arguments ...  should do this ..."
+    validations:
+      required: true
+  - type: input
+    id: program-details
+    attributes:
+      label: Program Details
+      description: What operating system and what version of the program is being used?
+      placeholder: "e.g. OS: [e.g. iOS], Program version [e.g. 2.1]"
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        Please attach any screenshots or logging output to help explain your problem.
+        Thanks for taking the time to fill out this bug report!

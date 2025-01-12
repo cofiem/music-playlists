@@ -1,0 +1,31 @@
+name: Feature Request
+description: Suggest an idea for this project
+title: "[Feature]: "
+labels:
+  - enhancement
+assignees:
+  - cofiem
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the feature
+      description: A summary of the new functionality you'd like
+      placeholder: Tell us what you want to see!
+      value: "e.g. It would be nice to be able to do this and get this output ..."
+    validations:
+      required: true
+  - type: textarea
+    id: alternative
+    attributes:
+      label: Are there other approaches?
+      description: Any alternative solutions or features you've considered
+      placeholder: Tell us what else could be done
+      value: "e.g. Your program could interact with this other program like this ..."
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        Please attach any screenshots or other files  to help explain your feature.
+        Thanks for taking the time to fill out this feature request!

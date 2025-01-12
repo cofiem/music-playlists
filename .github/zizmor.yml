@@ -1,0 +1,6 @@
+rules:
+  dangerous-triggers:
+    ignore:
+      # Ignore 'pull_request_target' in the labeler workflow.
+      # This is the recommended setup for that action: https://github.com/actions/labeler
+      - labeler.yml:3

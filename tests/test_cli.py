@@ -1,9 +1,14 @@
+import os
+
 import pytest
 from click.testing import CliRunner
 
 from music_playlists.cli import music_playlists
 
 
+@pytest.mark.skipif(
+    os.getenv("MUSIC_PLAYLISTS_TESTS_SLOW") != "true", reason="Requires internet access"
+)
 @pytest.mark.parametrize(
     "name,title",
     [
@@ -16,13 +21,29 @@ from music_playlists.cli import music_playlists
         ("radio-4zzz", "4zzz Most Played Weekly"),
     ],
 )
-def test_sources_run(name, title):
+def test_sources_run_all(name, title):
     runner = CliRunner()
     result = runner.invoke(music_playlists, ["sources", "run", name])
     assert result.exit_code == 0
     assert title in result.output
 
 
+@pytest.mark.parametrize(
+    "name,title",
+    [
+        ("abc-radio-classic", "ABC Classic Recently Played"),
+    ],
+)
+def test_sources_run_one(name, title):
+    runner = CliRunner()
+    result = runner.invoke(music_playlists, ["sources", "run", name])
+    assert result.exit_code == 0
+    assert title in result.output
+
+
+@pytest.mark.skipif(
+    os.getenv("MUSIC_PLAYLISTS_TESTS_SLOW") != "true", reason="Requires internet access"
+)
 def test_services_update():
     runner = CliRunner()
     result = runner.invoke(music_playlists, ["services", "update"])

@@ -454,14 +454,13 @@ class Manage:
                     other.normalised,
                 )
                 return other
-            else:
-                logger.debug(
-                    "No match for track %s to query result %s ('%s' != '%s').",
-                    track,
-                    other,
-                    track.normalised,
-                    other.normalised,
-                )
+            logger.debug(
+                "No match for track %s to query result %s ('%s' != '%s').",
+                track,
+                other,
+                track.normalised,
+                other.normalised,
+            )
 
         logger.debug(
             "No match for track %s in first %s query results.", track, len(haystack)

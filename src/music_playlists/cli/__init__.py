@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: 2024-present Mark C <cofiem@gmail.com>
-#
-# SPDX-License-Identifier: Apache-2.0
-
 import click
 from rich.console import Console
 from rich.table import Table
