@@ -53,16 +53,10 @@ jobs:
         python-version: ${{ fromJson(needs.build-package.outputs.python-versions) }}
 
     steps:
-      - name: Download pre-built packages
-        uses: actions/download-artifact@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          name: Packages
-          path: dist
-
-      - name: Extract pre-built package
-        run: |
-          tar xf dist/*.tar.gz --strip-components=1
-          rm -rf src
+          persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
