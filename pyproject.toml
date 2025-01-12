@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -49,6 +49,11 @@ music-playlists = "music_playlists.cli:music_playlists"
 
 [tool.hatch.version]
 path = "src/music_playlists/__about__.py"
+source = "vcs"
+version_scheme = "no-guess-dev"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "_version.py"
 
 [tool.hatch.envs.default]
 dependencies = [
