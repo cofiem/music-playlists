@@ -50,7 +50,10 @@ music-playlists = "music_playlists.cli:music_playlists"
 [tool.hatch.version]
 path = "src/music_playlists/__about__.py"
 source = "vcs"
-version_scheme = "no-guess-dev"
+
+[tool.hatch.version.raw-options]
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "_version.py"
