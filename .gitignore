@@ -142,3 +142,4 @@ http_cache.sqlite
 
 embed/
 support/
+_version.py

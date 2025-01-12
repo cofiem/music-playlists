@@ -177,3 +177,10 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+pythonpath = ["src"]
+testpaths = ["tests"]
+xfail_strict = true
