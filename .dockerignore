@@ -1,0 +1,6 @@
+.github
+.hatch
+support
+.coverage
+Dockerfile
+http_cache.sqlite
