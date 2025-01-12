@@ -68,6 +68,12 @@ jobs:
       - name: Install hatch
         run: pipx install hatch
 
+      - name: Prepare for tests
+        run: |
+          echo "MUSIC_PLAYLISTS_TIME_ZONE = 'Australia/Brisbane'" >> .env.toml
+          echo "MUSIC_PLAYLISTS_BASE_PATH = '.'" >> .env.toml
+          echo "LASTFM_AUTH_API_KEY = 'not-set'" >> .env.toml
+
       - name: Run tests
         run: hatch run cov
 

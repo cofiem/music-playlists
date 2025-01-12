@@ -4,3 +4,5 @@ support
 .coverage
 Dockerfile
 http_cache.sqlite
+.env*
+_version.py

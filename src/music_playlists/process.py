@@ -42,19 +42,6 @@ class Process:
         self._last_fm = last_fm.Manage(d, tz, s.lastfm_api_key)
         self._radio_4zzz = radio_4zzz.Manage(d, tz)
 
-        # services
-        self._spotify_client = spotify.Client(
-            d,
-            s.spotify_redirect_uri,
-            s.spotify_client_id,
-            s.spotify_client_secret,
-            s.spotify_refresh_token,
-        )
-        self._spotify = spotify.Manage(d, self._spotify_client)
-
-        self._youtube_music_client = youtube_music.Client(d, s.youtube_music_config)
-        self._youtube_music = youtube_music.Manage(d, self._youtube_music_client)
-
         # processing
         self._intermediate = inter.Manage()
 
@@ -89,6 +76,8 @@ class Process:
 
     def services_update(self):
         logger.info("Updating music playlists.")
+
+        self._init_services()
 
         self._spotify.client.login()
         self._youtube_music.client.login()
@@ -192,6 +181,23 @@ class Process:
                 playlist_info=self._youtube_music.update_playlist_details,
             ),
         )
+
+    def _init_services(self):
+        s = self._settings
+        d = self._downloader
+
+        # services
+        self._spotify_client = spotify.Client(
+            d,
+            s.spotify_redirect_uri,
+            s.spotify_client_id,
+            s.spotify_client_secret,
+            s.spotify_refresh_token,
+        )
+        self._spotify = spotify.Manage(d, self._spotify_client)
+
+        self._youtube_music_client = youtube_music.Client(d, s.youtube_music_config)
+        self._youtube_music = youtube_music.Manage(d, self._youtube_music_client)
 
     def _find_tracks(
         self, service_name: str, tracks: list[inter.Track], search_func, embedded_func
