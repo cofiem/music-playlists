@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
   "click==8.1.8",
-  "ytmusicapi==1.10.1",
+  "ytmusicapi==1.10.3",
   "requests==2.32.3",
   "tzdata==2025.1",
   "lxml==5.4.0",
