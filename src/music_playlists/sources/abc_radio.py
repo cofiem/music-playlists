@@ -6,7 +6,7 @@ import requests
 from beartype import beartype
 
 from music_playlists import intermediate as inter
-from music_playlists import utils
+from music_playlists import model, utils
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +110,7 @@ class Play:
     recording: Recording
     release: Release | None = None
     count: int | None = None
+    summary: str | None = None
 
 
 @beartype
@@ -184,37 +185,18 @@ class UnearthedTracksShowcase:
 
 
 @beartype
-class Manage:
+class Manage(model.Source):
     code = "abc-radio"
 
-    service_doublej = "doublej"
-    service_triplej = "triplej"
-    service_unearthed = "unearthed"
-    service_jazz = "jazz"
-    service_classic = "classic"
-
-    available_codes = {
-        f"{code}-{service_doublej}": {
-            "func": "doublej_most_played",
-            "title": "ABC Double J Most Played Daily",
-        },
-        f"{code}-{service_triplej}": {
-            "func": "triplej_most_played",
-            "title": "ABC Triple J Most Played Daily",
-        },
-        f"{code}-{service_unearthed}": {
-            "func": "unearthed_most_played",
-            "title": "ABC Triple J Unearthed Weekly",
-        },
-        f"{code}-{service_jazz}": {
-            "func": "jazz_recently_played",
-            "title": "ABC Jazz Recently Played",
-        },
-        f"{code}-{service_classic}": {
-            "func": "classic_recently_played",
-            "title": "ABC Classic Recently Played",
-        },
-    }
+    @classmethod
+    def available(cls):
+        return {
+            "doublej-most-played-daily": cls.doublej_most_played,
+            "triplej-most-played-daily": cls.triplej_most_played,
+            "unearthed-most-played-weekly": cls.unearthed_most_played,
+            "jazz-recently-played": cls.jazz_recently_played,
+            "classic-recently-played": cls.classic_recently_played,
+        }
 
     def __init__(self, downloader: utils.Downloader, time_zone):
         self._dl = downloader
@@ -230,8 +212,7 @@ class Manage:
         # https://www.abc.net.au/doublej/featured-music/most-played/
         # https://www.abc.net.au/triplejunearthed/music/
 
-    def triplej_most_played(self) -> inter.TrackList:
-        title = self.available_codes[f"{self.code}-{self.service_triplej}"]["title"]
+    def triplej_most_played(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -241,7 +222,7 @@ class Manage:
         date_to = current_day - timedelta(days=1)
 
         plays = self.recordings_plays(
-            self.service_triplej,
+            "triplej",
             date_from,
             date_to,
             limit=100,
@@ -253,8 +234,7 @@ class Manage:
         )
         return tl
 
-    def doublej_most_played(self) -> inter.TrackList:
-        title = self.available_codes[f"{self.code}-{self.service_doublej}"]["title"]
+    def doublej_most_played(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -264,7 +244,7 @@ class Manage:
         date_to = current_day - timedelta(days=1)
 
         plays = self.recordings_plays(
-            self.service_doublej,
+            "doublej",
             date_from,
             date_to,
             limit=100,
@@ -276,8 +256,7 @@ class Manage:
         )
         return tl
 
-    def unearthed_most_played(self) -> inter.TrackList:
-        title = self.available_codes[f"{self.code}-{self.service_unearthed}"]["title"]
+    def unearthed_most_played(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         showcase = self.tracks_showcase()
@@ -292,8 +271,7 @@ class Manage:
         )
         return tl
 
-    def classic_recently_played(self) -> inter.TrackList:
-        title = self.available_codes[f"{self.code}-{self.service_classic}"]["title"]
+    def classic_recently_played(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -302,13 +280,12 @@ class Manage:
         date_from = current_day - timedelta(days=8)
         date_to = current_day - timedelta(days=1)
 
-        s = self.service_classic
         results = []
         limit = 100
         offset = 0
         while True:
             search = self.plays_search(
-                service=s,
+                service="classic",
                 date_from=date_from,
                 date_to=date_to,
                 limit=limit,
@@ -326,8 +303,7 @@ class Manage:
         )
         return tl
 
-    def jazz_recently_played(self) -> inter.TrackList:
-        title = self.available_codes[f"{self.code}-{self.service_jazz}"]["title"]
+    def jazz_recently_played(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -336,13 +312,12 @@ class Manage:
         date_from = current_day - timedelta(days=8)
         date_to = current_day - timedelta(days=1)
 
-        s = self.service_jazz
         results = []
         limit = 100
         offset = 0
         while True:
             search = self.plays_search(
-                service=s,
+                service="jazz",
                 date_from=date_from,
                 date_to=date_to,
                 limit=limit,

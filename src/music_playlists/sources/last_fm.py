@@ -7,7 +7,7 @@ from beartype import beartype
 from cattrs.gen import make_dict_structure_fn, make_dict_unstructure_fn, override
 
 from music_playlists import intermediate as inter
-from music_playlists import utils
+from music_playlists import model, utils
 
 logger = logging.getLogger(__name__)
 
@@ -85,14 +85,14 @@ utils.c.register_structure_hook(
 
 
 @beartype
-class Manage:
+class Manage(model.Source):
     code = "last-fm"
-    available_codes = {
-        code: {
-            "func": "aus_top_tracks",
-            "title": "Last.fm Most Popular Weekly in Australia",
-        },
-    }
+
+    @classmethod
+    def available(cls):
+        return {
+            "aus-most-played-weekly": cls.aus_top_tracks,
+        }
 
     def __init__(self, downloader: utils.Downloader, time_zone: tzinfo, api_key: str):
         self._dl = downloader
@@ -100,8 +100,7 @@ class Manage:
         self._api_key = api_key
         self._url = "https://ws.audioscrobbler.com/2.0"
 
-    def aus_top_tracks(self) -> inter.TrackList:
-        title = self.available_codes[self.code]["title"]
+    def aus_top_tracks(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         country = "australia"

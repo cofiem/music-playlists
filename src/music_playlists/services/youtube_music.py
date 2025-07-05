@@ -1,5 +1,4 @@
 import functools
-import json
 import logging
 from pathlib import Path
 
@@ -10,7 +9,7 @@ from ytmusicapi import YTMusic
 from ytmusicapi.exceptions import YTMusicServerError
 
 from music_playlists import intermediate as inter
-from music_playlists import utils
+from music_playlists import model, utils
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +102,10 @@ class Tracks:
 
 
 @beartype
-class Client:
-    def __init__(self, downloader: utils.Downloader, credentials: str | None = None):
+class Client(model.ServiceClient):
+    def __init__(
+        self, downloader: utils.Downloader, credentials: dict[str, str] | None = None
+    ):
         self._downloader = downloader
         self._credentials = self._build_expected_credentials(credentials)
         self._session = self._downloader.get_session
@@ -116,7 +117,7 @@ class Client:
             raise ValueError("Log in to YouTube music first.")
         return self._api
 
-    def login(self):
+    def login(self) -> None:
         if not self._credentials:
             self._get_credentials()
 
@@ -140,9 +141,9 @@ class Client:
         request_headers = path.read_text()
         self._credentials = YTMusic.setup(filepath=None, headers_raw=request_headers)
 
-    def _build_expected_credentials(self, raw: str) -> dict:
+    def _build_expected_credentials(self, raw: dict[str, str] | None) -> dict:
         """Check headers required for auth and build the credentials data"""
-        data = {k.lower(): v for k, v in json.loads(raw).items()}
+        data = {k.lower(): v for k, v in (raw or {}).items()}
         result = ytmusicapi.helpers.initialize_headers()
         required = ["cookie", "x-goog-authuser", "authorization"]
         for item in required:
@@ -155,7 +156,7 @@ class Client:
 
 
 @beartype
-class Manage:
+class Manage(model.Service):
     code = "youtube-music"
 
     def __init__(self, downloader: utils.Downloader, client: Client):
@@ -168,7 +169,7 @@ class Manage:
         return self._client
 
     def playlist_tracks(
-        self, playlist_id: str, limit: int | None = 100
+        self, playlist_id: str, limit: int | None = 100, *args, **kwargs
     ) -> inter.TrackList:
         logger.info("Get playlist tracks from YouTube Music for %s.", playlist_id)
 
@@ -184,9 +185,9 @@ class Manage:
         )
 
     def track_embedded_id(self, track: inter.Track) -> inter.Track | None:
-        search = json.dumps(attrs.asdict(track))
-        if "youtube" in search:
-            raise ValueError(search)
+        # search = json.dumps(attrs.asdict(track))
+        # if "youtube" in search:
+        #     raise ValueError(search)
         return None
 
     def search_tracks(self, query: str, limit: int = 5) -> inter.TrackList:

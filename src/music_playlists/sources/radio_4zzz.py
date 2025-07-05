@@ -7,7 +7,7 @@ from beartype import beartype
 from requests import Response
 
 from music_playlists import intermediate as inter
-from music_playlists import utils
+from music_playlists import model, utils
 
 logger = logging.getLogger(__name__)
 
@@ -131,23 +131,21 @@ class Track:
 
 
 @beartype
-class Manage:
+class Manage(model.Source):
     code = "radio-4zzz"
 
-    available_codes = {
-        code: {
-            "func": "active_program_tracks",
-            "title": "4zzz Most Played Weekly",
-        },
-    }
+    @classmethod
+    def available(cls):
+        return {
+            "all-most-played-weekly": cls.active_program_tracks,
+        }
 
     def __init__(self, downloader: utils.Downloader, time_zone: tzinfo):
         self._dl = downloader
         self._tz = time_zone
         self._url = "https://airnet.org.au/rest/stations/4ZZZ/programs"
 
-    def active_program_tracks(self) -> inter.TrackList:
-        title = self.available_codes[self.code]["title"]
+    def active_program_tracks(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)

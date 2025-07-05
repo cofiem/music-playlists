@@ -7,7 +7,8 @@ from beartype import beartype
 from beartype.claw import beartype_package
 
 from music_playlists import intermediate as inter
-from music_playlists import settings, utils
+from music_playlists import model, settings, utils
+from music_playlists.intermediate import TrackListType
 from music_playlists.services import spotify, youtube_music
 from music_playlists.sources import abc_radio, last_fm, radio_4zzz
 
@@ -25,9 +26,9 @@ logger = logging.getLogger(__name__)
 
 @beartype
 class Process:
-    def __init__(self):
+    def __init__(self, config_file: pathlib.Path):
         # common
-        self._settings = settings.Settings()
+        self._settings = settings.Settings(config_file)
         s = self._settings
 
         self._time_zone = zoneinfo.ZoneInfo(s.time_zone)
@@ -42,117 +43,108 @@ class Process:
         self._last_fm = last_fm.Manage(d, tz, s.lastfm_api_key)
         self._radio_4zzz = radio_4zzz.Manage(d, tz)
 
+        # services
+        self._spotify_client = spotify.Client(
+            d,
+            s.spotify_redirect_uri,
+            s.spotify_client_id,
+            s.spotify_client_secret,
+            s.spotify_refresh_token,
+        )
+        self._spotify = spotify.Manage(d, self._spotify_client)
+
+        self._youtube_music_client = youtube_music.Client(d, s.youtube_music_config)
+        self._youtube_music = youtube_music.Manage(d, self._youtube_music_client)
+
         # processing
         self._intermediate = inter.Manage()
+        self._playlists_config = list(self._settings.playlists)
 
-    def source_run(self, name: str):
-        known = [
+        self._sources: list[model.Source] = [
             self._abc_radio,
             self._last_fm,
             self._radio_4zzz,
         ]
-        manage = None
-        manage_method = None
-        for item in known:
-            available_codes = getattr(item, "available_codes", None)
-            if available_codes is None:
-                continue
-            code_info = available_codes.get(name, None)
-            if code_info is None:
-                continue
 
-            manage = item
-            manage_method = code_info.get("func")
-            break
+    def list_available(self):
+        result = []
+        for item in self._sources:
+            available = item.available() or {}
+            for code in available.keys():
+                for pc in self._playlists_config:
+                    if pc.code == code and pc.source == item.code:
+                        result.append(
+                            {
+                                "code": code,
+                                "title": pc.title,
+                                "source": pc.source,
+                                "service": pc.service,
+                                "playlist_id": pc.playlist_id,
+                            }
+                        )
+        result = sorted(
+            result,
+            key=lambda key: (key.get("source"), key.get("code"), key.get("service")),
+        )
+        return result
 
-        if manage is None or manage_method is None:
-            raise ValueError(f"Could not find a source named '{name}'.")
+    def source_show(self, name: str):
+        for item in self._sources:
+            available = item.available() or {}
+            for code in available.keys():
+                key = f"{item.code}-{code}"
+                if name != key:
+                    continue
+                for pc in self._playlists_config:
+                    if pc.code == code and pc.source == item.code:
+                        tracks = available[code](item, pc.title)
+                        if tracks.type == TrackListType.ALL_PLAYS:
+                            tracks = self._intermediate.most_played(tracks)
+                        return tracks
+        raise ValueError(f"Could not find a source named '{name}'.")
 
-        # get the track list
-        runner = getattr(manage, manage_method)
-        tl = runner()
+    def services_update(
+        self,
+        code_name: str | None = None,
+        source_name: str | None = None,
+        service_name: str | None = None,
+    ):
+        logger.info(
+            "Updating music playlists with code %s, source %s, service %s.",
+            code_name or "(all)",
+            source_name or "(all)",
+            service_name or "(all)",
+        )
 
-        return tl
-
-    def services_update(self):
-        logger.info("Updating music playlists.")
-
-        self._init_services()
-
-        self._spotify.client.login()
-        self._youtube_music.client.login()
-
-        s = self._settings
+        if not service_name or service_name == self._spotify.code:
+            self._spotify.client.login()
+        if not service_name or service_name == self._youtube_music.code:
+            self._youtube_music.client.login()
 
         # get the new tracks from the source playlists
         # and find the new tracks in the streaming services
-        triplej = self._abc_radio.triplej_most_played()
-        self._intermediate.normalise_tracklist(triplej)
-        self.update_spotify(
-            triplej,
-            s.playlist_spotify_triplej_most_played,
-        )
-        self.update_youtube_music(
-            triplej,
-            s.playlist_youtube_music_triplej_most_played,
-        )
-
-        doublej = self._abc_radio.doublej_most_played()
-        self._intermediate.normalise_tracklist(doublej)
-        self.update_spotify(
-            doublej,
-            s.playlist_spotify_doublej_most_played,
-        )
-        self.update_youtube_music(
-            doublej,
-            s.playlist_youtube_music_doublej_most_played,
-        )
-
-        unearthed = self._abc_radio.unearthed_most_played()
-        self._intermediate.normalise_tracklist(unearthed)
-        self.update_spotify(
-            unearthed,
-            s.playlist_spotify_unearthed_most_played,
-        )
-        self.update_youtube_music(
-            unearthed,
-            s.playlist_youtube_music_unearthed_most_played,
-        )
-
-        last_fm_top = self._last_fm.aus_top_tracks()
-        self._intermediate.normalise_tracklist(last_fm_top)
-        self.update_spotify(
-            last_fm_top,
-            s.playlist_spotify_last_fm_most_popular_aus,
-        )
-        self.update_youtube_music(
-            last_fm_top,
-            s.playlist_youtube_music_last_fm_most_popular_aus,
-        )
-
-        # reduce the 'all-plays' track lists to the top 100 most played
-
-        # ABC Classic does not have Spotify or YouTube Music playlists
-        classic_plays = self._abc_radio.classic_recently_played()
-        self._intermediate.normalise_tracklist(classic_plays)
-        classic = self._intermediate.most_played(classic_plays)
-
-        # ABC Jazz does not have Spotify or YouTube Music playlists
-        jazz_plays = self._abc_radio.jazz_recently_played()
-        self._intermediate.normalise_tracklist(jazz_plays)
-        jazz = self._intermediate.most_played(jazz_plays)
-
-        radio_4zzz_plays = self._radio_4zzz.active_program_tracks()
-        self._intermediate.normalise_tracklist(radio_4zzz_plays)
-        radio_4zzz_list = self._intermediate.most_played(radio_4zzz_plays)
-        self.update_spotify(
-            radio_4zzz_list,
-            s.playlist_spotify_radio_4zzz_most_played,
-        )
-        self.update_youtube_music(
-            radio_4zzz_list,
-            s.playlist_youtube_music_radio_4zzz_most_played,
-        )
+        for source in self._sources:
+            if source_name and source_name != source.code:
+                continue
+            available = source.available() or {}
+            for code in available.keys():
+                code_key = f"{source.code}-{code}"
+                if code_name and code_name != code_key:
+                    continue
+                for pc in self._playlists_config:
+                    if not pc.playlist_id:
+                        continue
+                    if service_name and service_name != pc.service:
+                        continue
+                    if pc.code == code and pc.source == source.code:
+                        tracks = available[code](source, pc.title)
+                        if tracks.type == TrackListType.ALL_PLAYS:
+                            tracks = self._intermediate.most_played(tracks)
+                        self._intermediate.normalise_tracklist(tracks)
+                        if pc.service == self._spotify.code:
+                            self.update_spotify(tracks, pc.playlist_id)
+                        elif pc.service == self._youtube_music.code:
+                            self.update_youtube_music(tracks, pc.playlist_id)
 
         logger.info("Finished updating music playlists")
 
@@ -181,23 +173,6 @@ class Process:
                 playlist_info=self._youtube_music.update_playlist_details,
             ),
         )
-
-    def _init_services(self):
-        s = self._settings
-        d = self._downloader
-
-        # services
-        self._spotify_client = spotify.Client(
-            d,
-            s.spotify_redirect_uri,
-            s.spotify_client_id,
-            s.spotify_client_secret,
-            s.spotify_refresh_token,
-        )
-        self._spotify = spotify.Manage(d, self._spotify_client)
-
-        self._youtube_music_client = youtube_music.Client(d, s.youtube_music_config)
-        self._youtube_music = youtube_music.Manage(d, self._youtube_music_client)
 
     def _find_tracks(
         self, service_name: str, tracks: list[inter.Track], search_func, embedded_func

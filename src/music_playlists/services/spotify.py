@@ -1,5 +1,4 @@
 import base64
-import json
 import logging
 import secrets
 import webbrowser
@@ -11,7 +10,7 @@ from beartype import beartype
 from requests import Response, codes
 
 from music_playlists import intermediate as inter
-from music_playlists import utils
+from music_playlists import model, utils
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +130,7 @@ class Tracks:
 
 
 @beartype
-class Client:
+class Client(model.ServiceClient):
     auth_header = "Authorization"
 
     def __init__(
@@ -173,7 +172,7 @@ class Client:
         result = f"Bearer {self.access_token}"
         return result
 
-    def login(self):
+    def login(self) -> None:
         if self._refresh_token and not self._access_token:
             self._get_access_token()
         if not self._refresh_token:
@@ -248,7 +247,7 @@ class Client:
 
 
 @beartype
-class Manage:
+class Manage(model.Service):
     code = "spotify"
 
     def __init__(self, downloader: utils.Downloader, client: Client):
@@ -269,6 +268,8 @@ class Manage:
         limit: int = 100,
         offset: int = 0,
         market: str = "AU",
+        *args,
+        **kwargs,
     ) -> Tracks:
         """Get the tracks in a playlist."""
         logger.info("Get playlist tracks from Spotify for %s.", playlist_id)
@@ -296,9 +297,9 @@ class Manage:
         )
 
     def track_embedded_id(self, track: inter.Track) -> inter.Track | None:
-        search = json.dumps(attrs.asdict(track))
-        if "spotify" in search:
-            raise ValueError(search)
+        # search = json.dumps(attrs.asdict(track))
+        # if "spotify" in search:
+        #     raise ValueError(search)
         return None
 
     def search_tracks(

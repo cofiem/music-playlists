@@ -1,0 +1,24 @@
+[general]
+time_zone = "Australia/Canberra"
+base_path = "."
+
+[secrets.last-fm]
+api_key = "must-be-set-but-not-used"
+
+[secrets.spotify]
+auth_refresh_token = "must-be-set-but-not-used"
+auth_client_id = "must-be-set-but-not-used"
+auth_client_secret = "must-be-set-but-not-used"
+auth_redirect_uri = "must-be-set-but-not-used"
+
+[secrets.youtube-music]
+x_goog_auth_user =  '0'
+cookie = "must-be-set-but-not-used"
+authorization = "must-be-set-but-not-used"
+
+[[playlists]]
+source = "abc-radio"
+service = "spotify"
+code = "doublej-most-played-daily"
+title = "ABC Double J Most Played Daily"
+playlist_id =  "must-be-set-but-not-used"

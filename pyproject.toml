@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "music-playlists"
-description = "Generates streaming music playlists from various song charts."
 dynamic = ["version"]
+description = "Generates streaming music playlists from various song charts."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -27,16 +27,16 @@ classifiers = [
   "Topic :: Multimedia :: Sound/Audio",
 ]
 dependencies = [
-  "click==8.1.8",
-  "ytmusicapi==1.10.1",
-  "requests==2.32.3",
-  "tzdata==2025.1",
-  "lxml==5.4.0",
+  "click==8.2.1",
+  "ytmusicapi==1.10.3",
+  "requests==2.32.4",
+  "tzdata==2025.2",
+  "lxml==6.0.0",
   "requests-cache==1.2.1",
-  "beartype==0.20.2",
-  "attrs==25.1.0",
-  "cattrs==24.1.2",
-  "rich==13.9.4",
+  "beartype==0.21.0",
+  "attrs==25.3.0",
+  "cattrs==25.1.1",
+  "rich==14.0.0",
 ]
 
 [project.urls]
@@ -177,9 +177,3 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
-
-[tool.pytest.ini_options]
-pythonpath = "src"
-addopts = [
-  "--import-mode=importlib",
-]

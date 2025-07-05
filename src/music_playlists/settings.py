@@ -1,99 +1,88 @@
-import os
 import pathlib
 import tomllib
+from dataclasses import dataclass
 
 from beartype import beartype
 
 
 @beartype
+@dataclass(frozen=True)
+class PlaylistSetting:
+    source: str
+    service: str
+    code: str
+    title: str
+    playlist_id: str
+
+
+@beartype
 class Settings:
-    def __init__(self):
-        self._p = pathlib.Path.cwd().joinpath(".env.toml")
+    def __init__(self, config_path: pathlib.Path):
+        self._p = config_path
         self._data = {}
         if self._p.exists():
             self._data = tomllib.loads(self._p.read_text(encoding="utf-8"))
 
     @property
     def time_zone(self):
-        return self._get_setting("MUSIC_PLAYLISTS_TIME_ZONE")
+        return self._get_setting("general", "time_zone")
 
     @property
     def base_path(self):
-        return self._get_setting("MUSIC_PLAYLISTS_BASE_PATH")
+        return self._get_setting("general", "base_path")
 
     @property
     def lastfm_api_key(self):
-        return self._get_setting("LASTFM_AUTH_API_KEY")
+        return self._get_setting("secrets", "last-fm", "api_key")
 
     @property
     def spotify_refresh_token(self):
-        return self._get_setting("SPOTIFY_AUTH_REFRESH_TOKEN")
+        return self._get_setting("secrets", "spotify", "auth_refresh_token")
 
     @property
     def spotify_client_id(self):
-        return self._get_setting("SPOTIFY_AUTH_CLIENT_ID")
+        return self._get_setting("secrets", "spotify", "auth_client_id")
 
     @property
     def spotify_client_secret(self):
-        return self._get_setting("SPOTIFY_AUTH_CLIENT_SECRET")
+        return self._get_setting("secrets", "spotify", "auth_client_secret")
 
     @property
     def spotify_redirect_uri(self):
-        return self._get_setting("SPOTIFY_AUTH_REDIRECT_URI")
+        return self._get_setting("secrets", "spotify", "auth_redirect_uri")
 
     @property
     def youtube_music_config(self):
-        return self._get_setting("YOUTUBE_MUSIC_AUTH_CONFIG")
+        return {
+            "X-Goog-AuthUser": self._get_setting(
+                "secrets", "youtube-music", "x_goog_auth_user"
+            ),
+            "Cookie": self._get_setting("secrets", "youtube-music", "cookie"),
+            "Authorization": self._get_setting(
+                "secrets", "youtube-music", "authorization"
+            ),
+        }
 
     @property
-    def playlist_spotify_last_fm_most_popular_aus(self):
-        return self._get_setting("SPOTIFY_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS")
+    def playlists(self):
+        items = self._get_setting("playlists")
+        for item in items:
+            yield PlaylistSetting(**item)
 
-    @property
-    def playlist_spotify_radio_4zzz_most_played(self):
-        return self._get_setting("SPOTIFY_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED")
-
-    @property
-    def playlist_spotify_doublej_most_played(self):
-        return self._get_setting("SPOTIFY_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED")
-
-    @property
-    def playlist_spotify_triplej_most_played(self):
-        return self._get_setting("SPOTIFY_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED")
-
-    @property
-    def playlist_spotify_unearthed_most_played(self):
-        return self._get_setting("SPOTIFY_PLAYLIST_ID_TRIPLEJ_UNEARTHED")
-
-    @property
-    def playlist_youtube_music_last_fm_most_popular_aus(self):
-        return self._get_setting("YOUTUBE_MUSIC_PLAYLIST_ID_LASTFM_MOST_POPULAR_AUS")
-
-    @property
-    def playlist_youtube_music_radio_4zzz_most_played(self):
-        return self._get_setting("YOUTUBE_MUSIC_PLAYLIST_ID_RADIO_4ZZZ_MOST_PLAYED")
-
-    @property
-    def playlist_youtube_music_doublej_most_played(self):
-        return self._get_setting("YOUTUBE_MUSIC_PLAYLIST_ID_DOUBLEJ_MOST_PLAYED")
-
-    @property
-    def playlist_youtube_music_triplej_most_played(self):
-        return self._get_setting("YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_MOST_PLAYED")
-
-    @property
-    def playlist_youtube_music_unearthed_most_played(self):
-        return self._get_setting("YOUTUBE_MUSIC_PLAYLIST_ID_TRIPLEJ_UNEARTHED")
-
-    def _get_setting(self, key: str):
+    def _get_setting(self, *args):
+        d = self._data or {}
         value = None
-        if self._data:
-            value = self._data.get(key)
+        if d:
+            current = {**d}
+            for arg in args:
+                current = (current or {}).get(arg)
+            if current != d:
+                value = current
+
+        # if value is None:
+        #     value = os.getenv(key)
 
         if value is None:
-            value = os.getenv(key)
-
-        if value is None:
-            raise ValueError(f"Could not retrieve value for env var '{key}'.")
+            raise ValueError(f"Could not retrieve value for '{'.'.join(args)}'.")
 
         return value

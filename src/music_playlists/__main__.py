@@ -1,6 +1,6 @@
 import sys
 
 if __name__ == "__main__":
-    from music_playlists.cli import music_playlists
+    from music_playlists.cli import cli
 
-    sys.exit(music_playlists())
+    sys.exit(cli())

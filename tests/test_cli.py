@@ -1,51 +1,26 @@
-import os
+import pathlib
+from importlib.resources import read_text
 
-import pytest
 from click.testing import CliRunner
 
 from music_playlists.cli import music_playlists
 
 
-@pytest.mark.skipif(
-    os.getenv("MUSIC_PLAYLISTS_TESTS_SLOW") != "true", reason="Requires internet access"
-)
-@pytest.mark.parametrize(
-    "name,title",
-    [
-        ("abc-radio-classic", "ABC Classic Recently Played"),
-        ("abc-radio-doublej", "ABC Double J Most Played Daily"),
-        ("abc-radio-jazz", "ABC Jazz Recently Played"),
-        ("abc-radio-triplej", "ABC Triple J Most Played Daily"),
-        ("abc-radio-unearthed", "ABC Triple J Unearthed Weekly"),
-        ("last-fm", "Last.fm Most Popular Weekly in Australia"),
-        ("radio-4zzz", "4zzz Most Played Weekly"),
-    ],
-)
-def test_sources_run_all(name, title):
+def test_no_args():
     runner = CliRunner()
-    result = runner.invoke(music_playlists, ["sources", "run", name])
-    assert result.exit_code == 0
-    assert title in result.output
+    result = runner.invoke(music_playlists, [])
+    assert result.exit_code == 2
+    assert "Usage: music-playlists [OPTIONS] COMMAND [ARGS]..." in result.output
 
 
-@pytest.mark.parametrize(
-    "name,title",
-    [
-        ("abc-radio-classic", "ABC Classic Recently Played"),
-    ],
-)
-def test_sources_run_one(name, title):
+def test_list():
     runner = CliRunner()
-    result = runner.invoke(music_playlists, ["sources", "run", name])
+    with runner.isolated_filesystem() as f:
+        config_content = read_text("tests.resources", "test.toml")
+        text_config_file = pathlib.Path(f, "test.toml")
+        text_config_file.write_text(config_content)
+        result = runner.invoke(
+            music_playlists, ["list", "--config-file", str(text_config_file)]
+        )
     assert result.exit_code == 0
-    assert title in result.output
-
-
-@pytest.mark.skipif(
-    os.getenv("MUSIC_PLAYLISTS_TESTS_SLOW") != "true", reason="Requires internet access"
-)
-def test_services_update():
-    runner = CliRunner()
-    result = runner.invoke(music_playlists, ["services", "update"])
-    assert result.exit_code == 0
-    assert result.output == ""
+    assert "Available Sources and Services" in result.output
