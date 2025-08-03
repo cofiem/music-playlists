@@ -16,9 +16,17 @@ logger = logging.getLogger(__name__)
 @attrs.frozen
 class Artist:
     name: str
-    mbid: str
     url: str
+    mbid: str | None = None
 
+utils.c.register_unstructure_hook(
+    Artist,
+    make_dict_unstructure_fn(Artist, utils.c, _cattrs_omit_if_default=True,attr=override(rename="@attr")),
+)
+utils.c.register_structure_hook(
+    Artist,
+    make_dict_structure_fn(Artist, utils.c, attr=override(rename="@attr"), ),
+)
 
 @beartype
 @attrs.frozen
@@ -66,21 +74,21 @@ class Track:
     name: str
     duration: str
     listeners: str
-    mbid: str
     url: str
     streamable: Streamable
     artist: Artist
     image: list[Image]
     attr: TrackAttr
+    mbid: str | None = None
 
 
 utils.c.register_unstructure_hook(
     Track,
-    make_dict_unstructure_fn(Track, utils.c, attr=override(rename="@attr")),
+    make_dict_unstructure_fn(Track, utils.c, _cattrs_omit_if_default=True,attr=override(rename="@attr")),
 )
 utils.c.register_structure_hook(
     Track,
-    make_dict_structure_fn(Track, utils.c, attr=override(rename="@attr")),
+    make_dict_structure_fn(Track, utils.c, attr=override(rename="@attr"), ),
 )
 
 
