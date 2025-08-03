@@ -5,9 +5,9 @@ from pathlib import Path
 import attrs
 import ytmusicapi.helpers
 from beartype import beartype
+from requests.structures import CaseInsensitiveDict
 from ytmusicapi import YTMusic
 from ytmusicapi.exceptions import YTMusicServerError
-from requests.structures import CaseInsensitiveDict
 
 from music_playlists import intermediate as inter
 from music_playlists import model, utils
@@ -142,7 +142,9 @@ class Client(model.ServiceClient):
         request_headers = path.read_text()
         self._credentials = YTMusic.setup(filepath=None, headers_raw=request_headers)
 
-    def _build_expected_credentials(self, raw: dict[str, str] | None) -> CaseInsensitiveDict[str]:
+    def _build_expected_credentials(
+        self, raw: dict[str, str] | None
+    ) -> CaseInsensitiveDict[str]:
         """Check headers required for auth and build the credentials data"""
         data = {k.lower(): v for k, v in (raw or {}).items()}
         result = ytmusicapi.helpers.initialize_headers()

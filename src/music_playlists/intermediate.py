@@ -35,7 +35,7 @@ class Track:
     """A track that may be part of a playlist."""
 
     origin_code: str
-    track_id: str
+    track_id: str | None
     title: str
     artists: list[str]
     raw: typing.Any
@@ -199,7 +199,7 @@ class Manage:
         cls, values: list[str], escape: bool = True, allow_multiple: bool = True
     ):
         items = [
-            f'{re.escape(i) if escape else i}{"+" if allow_multiple else ""}'
+            f"{re.escape(i) if escape else i}{'+' if allow_multiple else ''}"
             for i in values
         ]
         joined = "|".join(items)
