@@ -21,7 +21,7 @@ CONFIG_FILE_OPT = {
 
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"]},
-    invoke_without_command=False,
+    no_args_is_help=True,
 )
 @click.version_option(version=__version__, prog_name="Music Playlists")
 def music_playlists():
