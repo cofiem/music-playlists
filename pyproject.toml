@@ -28,7 +28,7 @@ classifiers = [
 ]
 dependencies = [
   "click==8.2.1",
-  "ytmusicapi==1.10.3",
+  "ytmusicapi==1.11.0",
   "requests==2.32.4",
   "tzdata==2025.2",
   "lxml==6.0.0",
@@ -87,7 +87,7 @@ check = "mypy --install-types --non-interactive {args:src/music_playlists tests}
 
 [tool.hatch.envs.hatch-static-analysis]
 dependencies = [
-  "ruff==0.12.4",
+  "ruff==0.12.7",
 ]
 config-path = "none"
 
