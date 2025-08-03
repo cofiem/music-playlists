@@ -44,12 +44,12 @@ jobs:
           python -m pip install .
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@d6bbdef45e766d081b84a2def353b0055f728d3e # v3.29.3
+        uses: github/codeql-action/init@51f77329afa6477de8c49fc9c7046c15b9a4e79d # v3.29.5
         with:
           languages: ${{ matrix.language }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@d6bbdef45e766d081b84a2def353b0055f728d3e # v3.29.3
+        uses: github/codeql-action/analyze@51f77329afa6477de8c49fc9c7046c15b9a4e79d # v3.29.5
 
       - name: Run pip audit
         uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266 # v1.1.0
