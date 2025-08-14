@@ -87,7 +87,7 @@ check = "mypy --install-types --non-interactive {args:src/music_playlists tests}
 
 [tool.hatch.envs.hatch-static-analysis]
 dependencies = [
-  "ruff==0.12.8",
+  "ruff==0.12.9",
 ]
 config-path = "none"
 
