@@ -31,7 +31,7 @@ dependencies = [
   "ytmusicapi==1.11.0",
   "requests==2.32.4",
   "tzdata==2025.2",
-  "lxml==6.0.0",
+  "lxml==6.0.1",
   "requests-cache==1.2.1",
   "beartype==0.21.0",
   "attrs==25.3.0",
