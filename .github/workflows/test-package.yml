@@ -66,7 +66,9 @@ jobs:
           cache: pip
 
       - name: Install hatch
-        run: pipx install hatch
+        run: |
+          pipx install hatch
+          pipx inject hatch click==8.2.2 --force
 
       - name: Run tests
         run: hatch run cov
@@ -157,7 +159,9 @@ jobs:
           cache: pip
 
       - name: Install hatch
-        run: pipx install hatch
+        run: |
+          pipx install hatch
+          pipx inject hatch click==8.2.2 --force
 
       - name: Lint style
         run: hatch fmt --check || true

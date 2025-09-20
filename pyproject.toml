@@ -27,7 +27,7 @@ classifiers = [
   "Topic :: Multimedia :: Sound/Audio",
 ]
 dependencies = [
-  "click==8.2.1",
+  "click==8.2.2",
   "ytmusicapi==1.11.1",
   "requests==2.32.5",
   "tzdata==2025.2",
@@ -58,11 +58,19 @@ local_scheme = "no-local-version"
 [tool.hatch.build.hooks.vcs]
 version-file = "_version.py"
 
+[tool.hatch.env]
+requires = [
+    "hatch-pip-compile"
+]
+
 [tool.hatch.envs.default]
 dependencies = [
-  "coverage[toml]==7.10.2",
-  "pytest==8.4.1",
+  "coverage[toml]==7.10.6",
+  "pytest==8.4.2",
 ]
+type = "pip-compile"
+pip-compile-hashes = true
+
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
