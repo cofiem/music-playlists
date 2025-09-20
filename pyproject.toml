@@ -27,7 +27,7 @@ classifiers = [
   "Topic :: Multimedia :: Sound/Audio",
 ]
 dependencies = [
-  "click==8.2.2",
+  "click==8.3.0",
   "ytmusicapi==1.11.1",
   "requests==2.32.5",
   "tzdata==2025.2",
