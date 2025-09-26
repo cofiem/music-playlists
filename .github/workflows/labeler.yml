@@ -1,0 +1,24 @@
+name: Labeler
+
+on:
+  pull_request_target:
+    types: [ "opened" ]
+    branches: [ "main" ]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  label:
+    name: "Label Pull Request"
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/labeler@v5
