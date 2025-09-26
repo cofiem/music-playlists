@@ -43,6 +43,7 @@ dependencies = [
 Documentation = "https://github.com/cofiem/music-playlists#readme"
 Issues = "https://github.com/cofiem/music-playlists/issues"
 Source = "https://github.com/cofiem/music-playlists"
+Changelog = "https://github.com/cofiem/music-playlists/blob/main/CHANGELOG.md"
 
 [project.scripts]
 music-playlists = "music_playlists.cli:music_playlists"
@@ -67,6 +68,7 @@ requires = [
 dependencies = [
   "coverage[toml]==7.10.6",
   "pytest==8.4.2",
+  "pytest-cov==7.0.0",
 ]
 type = "pip-compile"
 pip-compile-hashes = true
@@ -149,6 +151,8 @@ exclude = [
   "node_modules",
   "site-packages",
   "venv",
+  "embed",
+  "Python",
 ]
 
 
@@ -173,6 +177,20 @@ unfixable = []
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "S", # lots of things not usually allowed can be used in test code
+    "ANN", # don't worry about typing in tests
+    "D", # ignore docstrings in tests
+]
+
+[tool.ruff.lint.isort]
+lines-between-types = 1
+lines-after-imports = 2
+
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
@@ -185,3 +203,12 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+
+[tool.mypy]
+strict = true
+pretty = true
+ignore_missing_imports = true
+check_untyped_defs = true
+no_implicit_optional = true
+show_error_codes = true

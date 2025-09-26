@@ -3,22 +3,34 @@ time_zone = "Australia/Canberra"
 base_path = "."
 
 [secrets.last-fm]
-api_key = "must-be-set-but-not-used"
+api_key = "value-for-testing"
 
 [secrets.spotify]
-auth_refresh_token = "must-be-set-but-not-used"
-auth_client_id = "must-be-set-but-not-used"
-auth_client_secret = "must-be-set-but-not-used"
-auth_redirect_uri = "must-be-set-but-not-used"
+auth_refresh_token = "value-for-testing"
+auth_client_id = "value-for-testing"
+auth_client_secret = "value-for-testing"
+auth_redirect_uri = "value-for-testing"
 
-[secrets.youtube-music]
-x_goog_auth_user =  '0'
-cookie = "must-be-set-but-not-used"
-authorization = "must-be-set-but-not-used"
+[secrets.youtube-music.oauth]
+client_id = "value-for-testing"
+client_secret = "value-for-testing"
+
+[secrets.youtube-music.oauth.auth]
+scope = "value-for-testing"
+token_type = "value-for-testing"
+access_token = "value-for-testing"
+refresh_token = "value-for-testing"
+expires_at = "value-for-testing"
+expires_in = "value-for-testing"
+
+[secrets.youtube-music.browser]
+X-Goog-AuthUser =  '0'
+Cookie = "value-for-testing"
+Authorization = "value-for-testing"
 
 [[playlists]]
 source = "abc-radio"
 service = "spotify"
 code = "doublej-most-played-daily"
 title = "ABC Double J Most Played Daily"
-playlist_id =  "must-be-set-but-not-used"
+playlist_id =  "value-for-testing"

@@ -8,6 +8,12 @@ Install `hatch`, e.g.
 pipx install hatch
 ```
 
+Generate the `requirements.txt` file from the `pyproject.toml` dependencies:
+
+```bash
+hatch run pip-compile
+```
+
 ## Run tests and linters
 
 Run the tests and linters with multiple python versions.

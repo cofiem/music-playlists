@@ -1,13 +1,16 @@
 import logging
+
 from datetime import tzinfo
 
 import attrs
 import requests
+
 from beartype import beartype
 from cattrs.gen import make_dict_structure_fn, make_dict_unstructure_fn, override
 
 from music_playlists import intermediate as inter
 from music_playlists import model, utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -114,12 +117,12 @@ class Manage(model.Source):
         self._api_key = api_key
         self._url = "https://ws.audioscrobbler.com/2.0"
 
-    def aus_top_tracks(self, title: str) -> inter.TrackList:
+    def aus_top_tracks(self, title: str, refresh=False) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         country = "australia"
 
-        top = self.top_tracks(country)
+        top = self.top_tracks(country, refresh=refresh)
         results = [
             inter.Track(
                 origin_code=self.code,
@@ -143,6 +146,7 @@ class Manage(model.Source):
         output_format: str = "json",
         limit: bool = "50",
         page: str = "1",
+        refresh=False,
     ) -> list[Track]:
         params = {
             "api_key": self._api_key,
@@ -152,7 +156,7 @@ class Manage(model.Source):
             "limit": limit,
             "page": page,
         }
-        r = self._dl.get_session.get(self._url, params=params)
+        r = self._dl.get_session.get(self._url, params=params, refresh=refresh)
         if r.status_code == requests.codes.ok and r.text:
             return utils.c.structure(r.json()["tracks"]["track"], list[Track])
         raise ValueError(str(r))

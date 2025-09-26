@@ -2,10 +2,13 @@ import functools
 import logging
 import re
 import unicodedata
+
 from enum import Enum
 
 import attrs
+
 from beartype import beartype, typing
+
 
 logger = logging.getLogger(__name__)
 

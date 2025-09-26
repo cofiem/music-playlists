@@ -13,3 +13,5 @@ embed/
 support/
 _version.py
 dist/
+Python/
+python_install_*.log

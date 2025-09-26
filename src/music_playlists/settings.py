@@ -1,8 +1,13 @@
+import logging
 import pathlib
 import tomllib
+
 from dataclasses import dataclass
 
 from beartype import beartype
+
+
+logger = logging.getLogger(__name__)
 
 
 @beartype
@@ -53,15 +58,22 @@ class Settings:
 
     @property
     def youtube_music_config(self):
-        return {
-            "X-Goog-AuthUser": self._get_setting(
-                "secrets", "youtube-music", "x_goog_auth_user"
-            ),
-            "Cookie": self._get_setting("secrets", "youtube-music", "cookie"),
-            "Authorization": self._get_setting(
-                "secrets", "youtube-music", "authorization"
-            ),
-        }
+        p = ["secrets", "youtube-music"]
+        try:
+            auth = self._get_setting(*[*p, "oauth"])
+            logger.warning("Using OAuth for YouTube Music.")
+            return auth
+        except ValueError:
+            pass
+
+        try:
+            auth = self._get_setting(*[*p, "browser"])
+            logger.warning("Using OAuth for YouTube Music.")
+            return auth
+        except ValueError:
+            pass
+
+        raise ValueError("No auth provided for YouTube Music.")
 
     @property
     def playlists(self):

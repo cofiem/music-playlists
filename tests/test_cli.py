@@ -1,4 +1,5 @@
 import pathlib
+
 from importlib.resources import read_text
 
 from click.testing import CliRunner

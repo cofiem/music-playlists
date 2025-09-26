@@ -2,15 +2,18 @@ import base64
 import logging
 import secrets
 import webbrowser
+
 from dataclasses import field
 from urllib.parse import urlencode
 
 import attrs
+
 from beartype import beartype
 from requests import Response, codes
 
 from music_playlists import intermediate as inter
 from music_playlists import model, utils
+
 
 logger = logging.getLogger(__name__)
 

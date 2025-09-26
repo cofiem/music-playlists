@@ -2,6 +2,7 @@ import pytest as pytest
 
 from music_playlists import intermediate as inter
 
+
 _inter_manage = inter.Manage()
 
 

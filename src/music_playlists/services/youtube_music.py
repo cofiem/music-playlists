@@ -1,16 +1,20 @@
 import functools
 import logging
+import typing
+
 from pathlib import Path
 
 import attrs
 import ytmusicapi.helpers
+
 from beartype import beartype
 from requests.structures import CaseInsensitiveDict
-from ytmusicapi import YTMusic
+from ytmusicapi import OAuthCredentials, YTMusic
 from ytmusicapi.exceptions import YTMusicServerError
 
 from music_playlists import intermediate as inter
 from music_playlists import model, utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +129,20 @@ class Client(model.ServiceClient):
         logger.info("Login using YouTube Music credentials.")
         s = self._session
         s.request = functools.partial(s.request, timeout=30)
-        self._api = YTMusic(auth=self._credentials, requests_session=s)
+        cred_type, creds = self._credentials.get("type"), self._credentials.get("data")
+        if cred_type == "oauth":
+            self._api = YTMusic(
+                auth=creds.get("auth"),
+                requests_session=s,
+                oauth_credentials=OAuthCredentials(
+                    client_id=creds.get("client_id"),
+                    client_secret=creds.get("client_secret"),
+                ),
+            )
+        elif cred_type == "browser":
+            self._api = YTMusic(auth=creds, requests_session=s)
+        else:
+            raise ValueError(f"Unknown credential type '{cred_type}'.")
 
     def _get_credentials(self):
         logger.info("Get YouTube Music credentials.")
@@ -144,18 +161,22 @@ class Client(model.ServiceClient):
 
     def _build_expected_credentials(
         self, raw: dict[str, str] | None
-    ) -> CaseInsensitiveDict[str]:
+    ) -> CaseInsensitiveDict[str] | dict[str, typing.Any]:
         """Check headers required for auth and build the credentials data"""
-        data = {k.lower(): v for k, v in (raw or {}).items()}
-        result = ytmusicapi.helpers.initialize_headers()
-        required = ["cookie", "x-goog-authuser", "authorization"]
-        for item in required:
-            if item not in data:
-                msg = f"Missing required item in credentials '{item}'."
-                raise ValueError(msg)
-            result[item] = data.get(item)
 
-        return result
+        if "Cookie" in raw and "X-Goog-AuthUser" in raw and "Authorization" in raw:
+            data = {k.lower(): v for k, v in (raw or {}).items()}
+            result = ytmusicapi.helpers.initialize_headers()
+            required = ["cookie", "x-goog-authuser", "authorization"]
+            for item in required:
+                if item not in data:
+                    msg = f"Missing required item in credentials '{item}'."
+                    raise ValueError(msg)
+                result[item] = data.get(item)
+            return {"type": "browser", "data": result}
+        if "auth" in raw and "client_id" in raw and "client_secret" in raw:
+            return {"type": "oauth", "data": raw}
+        return {}
 
 
 @beartype
@@ -193,7 +214,9 @@ class Manage(model.Service):
         #     raise ValueError(search)
         return None
 
-    def search_tracks(self, query: str, limit: int = 5) -> inter.TrackList:
+    def search_tracks(
+        self, query: str, limit: int | None = 5, *args, **kwargs
+    ) -> inter.TrackList:
         logger.debug("Search tracks from YouTube Music for '%s'.", query)
 
         raw = self._client.api.search(

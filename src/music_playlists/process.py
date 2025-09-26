@@ -12,6 +12,7 @@ from music_playlists.intermediate import TrackListType
 from music_playlists.services import spotify, youtube_music
 from music_playlists.sources import abc_radio, last_fm, radio_4zzz
 
+
 beartype_package("music_playlists")
 logging.basicConfig(
     format="%(asctime)s - %(levelname)-8s - %(name)s: %(message)s",
@@ -88,7 +89,7 @@ class Process:
         )
         return result
 
-    def source_show(self, name: str):
+    def source_show(self, name: str, refresh: bool = False):
         for item in self._sources:
             available = item.available() or {}
             for code in available.keys():
@@ -97,7 +98,8 @@ class Process:
                     continue
                 for pc in self._playlists_config:
                     if pc.code == code and pc.source == item.code:
-                        tracks = available[code](item, pc.title)
+                        func = available[code]
+                        tracks = func(item, pc.title, refresh)
                         if tracks.type == TrackListType.ALL_PLAYS:
                             tracks = self._intermediate.most_played(tracks)
                         return tracks

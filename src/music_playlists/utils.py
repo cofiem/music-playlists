@@ -1,12 +1,15 @@
 import functools
 import logging
+
 from datetime import timedelta
 from pathlib import Path
 
 import cattr
+
 from beartype import beartype
 from requests import Session
 from requests_cache import CachedSession, SQLiteCache
+
 
 c = cattr.GenConverter(forbid_extra_keys=True)
 
@@ -51,7 +54,7 @@ class Downloader:
             logger.info(
                 "Created cached session with timeout %s using sqlite expiring after %s at %s.",
                 timeout,
-                expire_after or '(never)',
+                expire_after or "(never)",
                 file_path,
             )
 

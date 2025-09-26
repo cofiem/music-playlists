@@ -1,12 +1,15 @@
 import logging
+
 from datetime import date, datetime, timedelta
 
 import attrs
 import requests
+
 from beartype import beartype
 
 from music_playlists import intermediate as inter
 from music_playlists import model, utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -212,7 +215,7 @@ class Manage(model.Source):
         # https://www.abc.net.au/doublej/featured-music/most-played/
         # https://www.abc.net.au/triplejunearthed/music/
 
-    def triplej_most_played(self, title: str) -> inter.TrackList:
+    def triplej_most_played(self, title: str, refresh=False) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -226,6 +229,7 @@ class Manage(model.Source):
             date_from,
             date_to,
             limit=100,
+            refresh=refresh,
         )
         tl = inter.TrackList(
             title=title,
@@ -234,7 +238,7 @@ class Manage(model.Source):
         )
         return tl
 
-    def doublej_most_played(self, title: str) -> inter.TrackList:
+    def doublej_most_played(self, title: str, refresh=False) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -248,6 +252,7 @@ class Manage(model.Source):
             date_from,
             date_to,
             limit=100,
+            refresh=refresh,
         )
         tl = inter.TrackList(
             title=title,
@@ -256,10 +261,10 @@ class Manage(model.Source):
         )
         return tl
 
-    def unearthed_most_played(self, title: str) -> inter.TrackList:
+    def unearthed_most_played(self, title: str, refresh=False) -> inter.TrackList:
         logger.info("Get %s.", title)
 
-        showcase = self.tracks_showcase()
+        showcase = self.tracks_showcase(refresh=refresh)
         first = self._convert_unearthed_track(showcase.trackOfTheDay)
         second = [self._convert_unearthed_track(t) for t in showcase.popularTracks]
         third = [self._convert_unearthed_track(t) for t in showcase.discoverTracks]
@@ -271,7 +276,7 @@ class Manage(model.Source):
         )
         return tl
 
-    def classic_recently_played(self, title: str) -> inter.TrackList:
+    def classic_recently_played(self, title: str, refresh=False) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -290,6 +295,7 @@ class Manage(model.Source):
                 date_to=date_to,
                 limit=limit,
                 offset=offset,
+                refresh=refresh,
             )
             results.extend([self._convert_play(p) for p in search.items])
             count = search.offset + len(search.items)
@@ -303,7 +309,7 @@ class Manage(model.Source):
         )
         return tl
 
-    def jazz_recently_played(self, title: str) -> inter.TrackList:
+    def jazz_recently_played(self, title: str, refresh=False) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -322,6 +328,7 @@ class Manage(model.Source):
                 date_to=date_to,
                 limit=limit,
                 offset=offset,
+                refresh=refresh,
             )
             results.extend([self._convert_play(p) for p in search.items])
             count = search.offset + len(search.items)
@@ -345,6 +352,7 @@ class Manage(model.Source):
         order: str = "desc",
         limit: int = 50,
         offset: int = 0,
+        refresh=False,
     ) -> Plays:
         """Get the most played songs for a service."""
         params = {
@@ -355,7 +363,9 @@ class Manage(model.Source):
             "from": f"{date_from.strftime('%Y-%m-%d')}T13:00:00Z",
             "to": f"{date_to.strftime('%Y-%m-%d')}T13:00:00Z",
         }
-        r = self._dl.get_session.get(self._url_recordings_plays, params=params)
+        r = self._dl.get_session.get(
+            self._url_recordings_plays, params=params, refresh=refresh
+        )
         if r.status_code == requests.codes.ok and r.text:
             return utils.c.structure(r.json(), Plays)
         raise ValueError(str(r))
@@ -368,6 +378,7 @@ class Manage(model.Source):
         order: str = "desc",
         limit: int = 50,
         offset: int = 0,
+        refresh=False,
     ) -> Search:
         """Get the recently played songs for a service."""
         params = {
@@ -378,14 +389,16 @@ class Manage(model.Source):
             "order": order,
             "offset": offset,
         }
-        r = self._dl.get_session.get(self._url_plays_search, params=params)
+        r = self._dl.get_session.get(
+            self._url_plays_search, params=params, refresh=refresh
+        )
         if r.status_code == requests.codes.ok and r.text:
             return utils.c.structure(r.json(), Search)
         raise ValueError(str(r))
 
-    def tracks_showcase(self) -> UnearthedTracksShowcase:
+    def tracks_showcase(self, refresh=False) -> UnearthedTracksShowcase:
         """Get the unearthed featured tracks."""
-        r = self._dl.get_session.get(self._url_tracks_showcase)
+        r = self._dl.get_session.get(self._url_tracks_showcase, refresh=refresh)
         if r.status_code == requests.codes.ok and r.text:
             return utils.c.structure(r.json(), UnearthedTracksShowcase)
         raise ValueError(str(r))

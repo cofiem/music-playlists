@@ -1,6 +1,7 @@
 import pathlib
 
 import click
+
 from rich.console import Console
 from rich.table import Table
 
@@ -8,6 +9,7 @@ from music_playlists import process
 from music_playlists.__about__ import __version__
 from music_playlists.services import spotify, youtube_music
 from music_playlists.sources import abc_radio, last_fm, radio_4zzz
+
 
 CONFIG_FILE_OPT = {
     "args": ["--config-file"],
@@ -78,11 +80,12 @@ def sources():
         case_sensitive=False,
     ),
 )
+@click.option("--refresh", is_flag=True)
 @click.option(*CONFIG_FILE_OPT["args"], **CONFIG_FILE_OPT["kwargs"])
-def show(config_file, code):
+def show(config_file, code, refresh):
     """Show all the tracks from the music playlist with CODE."""
     p = process.Process(pathlib.Path(config_file))
-    tl = p.source_show(code)
+    tl = p.source_show(code, refresh)
 
     # print track list as table
     track_count = len(tl.tracks)
