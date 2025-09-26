@@ -1,6 +1,6 @@
 # Change log
 
-## [v0.2.0](https://github.com/cofiem/screenshot-ocr/releases/tag/v0.2.0)
+## [v0.2.0](https://github.com/cofiem/music-playlists/releases/tag/v0.2.0)
 
 Release 2025-07-05
 
