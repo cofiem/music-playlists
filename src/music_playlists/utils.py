@@ -20,7 +20,7 @@ class Downloader:
     def __init__(
         self,
         store_path: Path = None,
-        expire_days: float | None = 1.5,
+        expire_days: float | None = None,
         timeout: int | None = 30,
     ):
         if store_path is None:
@@ -51,7 +51,7 @@ class Downloader:
             logger.info(
                 "Created cached session with timeout %s using sqlite expiring after %s at %s.",
                 timeout,
-                expire_after,
+                expire_after or '(never)',
                 file_path,
             )
 

@@ -83,7 +83,6 @@ class Playlist:
     title: str
     thumbnails: list[Thumbnail]
     description: str
-    # author: Author
     trackCount: int
     # suggestions_token: str
     tracks: list[Track]
@@ -94,6 +93,7 @@ class Playlist:
     owned: str | None = None
     artists: str | None = None
     views: str | None = None
+    author: Author | None = None
 
 
 @beartype
@@ -215,18 +215,22 @@ class Manage(model.Service):
         new_tracks = info.tracks
 
         if old_tracks:
-            result = self._client.api.remove_playlist_items(
-                info.playlist_id,
-                [
-                    {
-                        "videoId": t.raw.videoId,
-                        "setVideoId": t.raw.setVideoId,
-                    }
-                    for t in old_tracks
-                ],
-            )
+            try:
+                result = self._client.api.remove_playlist_items(
+                    info.playlist_id,
+                    [
+                        {
+                            "videoId": t.raw.videoId,
+                            "setVideoId": t.raw.setVideoId,
+                        }
+                        for t in old_tracks
+                    ],
+                )
 
-            if result != "STATUS_SUCCEEDED":
+                if result != "STATUS_SUCCEEDED":
+                    return False
+            except ytmusicapi.exceptions.YTMusicServerError as e:
+                logger.error("Could not remove playlist item: ", str(e))
                 return False
 
         try:
@@ -239,20 +243,24 @@ class Manage(model.Service):
             if "status" not in result or result.get("status") != "STATUS_SUCCEEDED":
                 return False
             return True
-        except YTMusicServerError:
-            logger.exception("YouTube Music error.")
+        except YTMusicServerError as e:
+            logger.error("Could not add playlist item: ", str(e))
             return False
 
     def update_playlist_details(self, info: inter.ServicePlaylistInfo) -> bool:
         logger.info("Update YouTube Music playlist details for %s.", info.playlist_id)
 
-        result = self._client.api.edit_playlist(
-            playlistId=info.playlist_id,
-            title=info.title,
-            description=info.description,
-            privacyStatus="PUBLIC" if info.is_public else "PRIVATE",
-        )
-        return result == "STATUS_SUCCEEDED"
+        try:
+            result = self._client.api.edit_playlist(
+                playlistId=info.playlist_id,
+                title=info.title,
+                description=info.description,
+                privacyStatus="PUBLIC" if info.is_public else "PRIVATE",
+            )
+            return result == "STATUS_SUCCEEDED"
+        except ytmusicapi.exceptions.YTMusicServerError as e:
+            logger.error("Could not update playlist: ", str(e))
+            return False
 
     def _convert_track(self, item: Track):
         return inter.Track(
