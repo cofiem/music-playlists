@@ -110,6 +110,7 @@ class Process:
         code_name: str | None = None,
         source_name: str | None = None,
         service_name: str | None = None,
+        refresh: bool = False,
     ):
         logger.info(
             "Updating music playlists with code %s, source %s, service %s.",
@@ -139,7 +140,8 @@ class Process:
                     if service_name and service_name != pc.service:
                         continue
                     if pc.code == code and pc.source == source.code:
-                        tracks = available[code](source, pc.title)
+                        func = available[code]
+                        tracks = func(source, pc.title, refresh)
                         if tracks.type == TrackListType.ALL_PLAYS:
                             tracks = self._intermediate.most_played(tracks)
                         self._intermediate.normalise_tracklist(tracks)

@@ -158,16 +158,18 @@ def services():
         case_sensitive=False,
     ),
 )
+@click.option("--refresh", is_flag=True, default=True)
 @click.option(*CONFIG_FILE_OPT["args"], **CONFIG_FILE_OPT["kwargs"])
 def update(
     config_file,
     code: str | None = None,
     source: str | None = None,
     service: str | None = None,
+    refresh: bool = False,
 ):
     """Update the songs in the playlists."""
     p = process.Process(pathlib.Path(config_file))
-    p.services_update(code, source, service)
+    p.services_update(code, source, service, refresh)
 
 
 if __name__ == "__main__":
