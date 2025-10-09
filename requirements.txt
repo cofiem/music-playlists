@@ -44,7 +44,7 @@ requests==2.32.5
     #   ytmusicapi
 requests-cache==1.2.1
     # via music-playlists (pyproject.toml)
-rich==14.1.0
+rich==14.2.0
     # via music-playlists (pyproject.toml)
 typing-extensions==4.15.0
     # via cattrs
