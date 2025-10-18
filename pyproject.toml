@@ -36,7 +36,7 @@ dependencies = [
   "beartype==0.22.2",
   "attrs==25.3.0",
   "cattrs==25.2.0",
-  "rich==14.1.0",
+  "rich==14.2.0",
 ]
 
 [project.urls]
