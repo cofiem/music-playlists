@@ -4,7 +4,7 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --pip-args=None
 #
-attrs==25.3.0
+attrs==25.4.0
     # via
     #   cattrs
     #   music-playlists (pyproject.toml)
