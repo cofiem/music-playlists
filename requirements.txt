@@ -23,7 +23,7 @@ click==8.3.0
     # via music-playlists (pyproject.toml)
 colorama==0.4.6
     # via click
-idna==3.10
+idna==3.11
     # via
     #   requests
     #   url-normalize
