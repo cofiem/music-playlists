@@ -11,7 +11,7 @@ attrs==25.4.0
     #   requests-cache
 beartype==0.22.2
     # via music-playlists (pyproject.toml)
-cattrs==25.2.0
+cattrs==25.3.0
     # via
     #   music-playlists (pyproject.toml)
     #   requests-cache

@@ -35,7 +35,7 @@ dependencies = [
   "requests-cache==1.2.1",
   "beartype==0.22.2",
   "attrs==25.4.0",
-  "cattrs==25.2.0",
+  "cattrs==25.3.0",
   "rich==14.2.0",
 ]
 
