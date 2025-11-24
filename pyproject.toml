@@ -33,7 +33,7 @@ dependencies = [
   "tzdata==2025.2",
   "lxml==6.0.2",
   "requests-cache==1.2.1",
-  "beartype==0.22.5",
+  "beartype==0.22.6",
   "attrs==25.4.0",
   "cattrs==25.3.0",
   "rich==14.2.0",
