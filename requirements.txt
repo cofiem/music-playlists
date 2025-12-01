@@ -56,5 +56,5 @@ urllib3==2.5.0
     # via
     #   requests
     #   requests-cache
-ytmusicapi==1.11.1
+ytmusicapi==1.11.3
     # via music-playlists (pyproject.toml)
