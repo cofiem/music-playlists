@@ -9,7 +9,7 @@ attrs==25.4.0
     #   cattrs
     #   music-playlists (pyproject.toml)
     #   requests-cache
-beartype==0.22.5
+beartype==0.22.7
     # via music-playlists (pyproject.toml)
 cattrs==25.3.0
     # via
