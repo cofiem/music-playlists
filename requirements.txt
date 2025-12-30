@@ -9,13 +9,13 @@ attrs==25.4.0
     #   cattrs
     #   music-playlists (pyproject.toml)
     #   requests-cache
-beartype==0.22.5
+beartype==0.22.9
     # via music-playlists (pyproject.toml)
 cattrs==25.3.0
     # via
     #   music-playlists (pyproject.toml)
     #   requests-cache
-certifi==2025.10.5
+certifi==2025.11.12
     # via requests
 charset-normalizer==3.4.4
     # via requests
@@ -33,7 +33,7 @@ markdown-it-py==4.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-platformdirs==4.5.0
+platformdirs==4.5.1
     # via requests-cache
 pygments==2.19.2
     # via rich
@@ -52,9 +52,9 @@ tzdata==2025.2
     # via music-playlists (pyproject.toml)
 url-normalize==2.2.1
     # via requests-cache
-urllib3==2.5.0
+urllib3==2.6.0
     # via
     #   requests
     #   requests-cache
-ytmusicapi==1.11.1
+ytmusicapi==1.11.4
     # via music-playlists (pyproject.toml)
