@@ -1,55 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:best-practices",
-    ":prConcurrentLimit10",
-    ":automergeDisabled"
+    "github>cofiem/shared-config//renovate-presets/default"
   ],
   "baseBranchPatterns": [
     "main"
-  ],
-  "minimumReleaseAge": "5 days",
-  "minimumReleaseAgeBehaviour": "timestamp-required",
-  "internalChecksFilter": "strict",
-  "prCreation": "not-pending",
-  "lockFileMaintenance": {
-    "enabled": true
-  },
-  "packageRules": [
-    {
-      "matchUpdateTypes": [
-        "lockFileMaintenance"
-      ],
-      "prCreation": "immediate",
-      "minimumReleaseAge": null
-    }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update variables specifying version numbers in files.",
-      "managerFilePatterns": [
-        "/.*\\.ya?ml$/",
-        "/.*\\.pkr\\.hcl/",
-        "/.*\\.sh$/"
-      ],
-      "matchStrings": [
-        "#\\s*renovate:\\s+datasource=(?<datasource>\\S+?)\\s+packageName=(?<packageName>\\S+)(?:\\s+depName=(?<depName>\\S+?))?(?:\\s+datasourceTemplate=(?<datasourceTemplate>\\S+?))?(?:\\s+versioning=(?<versioning>\\S+?))?(?:\\s+extractVersion=(?<extractVersion>\\S+?))?(?:\\s+depType=(?<depType>\\S+?))?(?:\\s+registryUrl=(?<registryUrl>\\S+?))?(?:\\s+currentDigest=(?<currentDigest>\\S+?))?\\s+[A-Za-z0-9_]*_?(version|VERSION|default)\\s*[:=]\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
-      ],
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    },
-    {
-      "customType": "regex",
-      "description": "Update variables specifying deb/apt version numbers in y[a]ml and sh files.",
-      "managerFilePatterns": [
-        "/.*\\.ya?ml$/",
-        "/.*\\.sh$/"
-      ],
-      "matchStrings": [
-        "#\\s*renovate:\\s*?depName=(?<depName>\\S+?)\\s+debBaseUrl=(?<debBaseUrl>\\S+?)\\s+debSuite=(?<debSuite>\\S+?)\\s+debComponents=(?<debComponents>\\S+?)\\s+debBinaryArch=(?<debBinaryArch>\\S+?)\\s+[A-Za-z0-9_]*_?(version|VERSION|default)\\s*[:=]\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
-      ],
-      "registryUrlTemplate": "{{debBaseUrl}}?suite={{debSuite}}&components={{debComponents}}&binaryArch={{debBinaryArch}}",
-      "datasourceTemplate": "deb"
-    }
   ]
 }
