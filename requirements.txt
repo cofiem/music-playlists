@@ -48,7 +48,7 @@ rich==14.2.0
     # via music-playlists (pyproject.toml)
 typing-extensions==4.15.0
     # via cattrs
-tzdata==2025.2
+tzdata==2025.3
     # via music-playlists (pyproject.toml)
 url-normalize==2.2.1
     # via requests-cache
