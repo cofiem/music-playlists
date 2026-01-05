@@ -52,7 +52,7 @@ tzdata==2025.2
     # via music-playlists (pyproject.toml)
 url-normalize==2.2.1
     # via requests-cache
-urllib3==2.6.0
+urllib3==2.6.2
     # via
     #   requests
     #   requests-cache
