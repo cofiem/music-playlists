@@ -8,12 +8,6 @@ Install `hatch`, e.g.
 pipx install hatch
 ```
 
-Generate the `requirements.txt` file from the `pyproject.toml` dependencies:
-
-```bash
-hatch run pip-compile
-```
-
 ## Run tests and linters
 
 Run the tests and linters with multiple python versions.
@@ -27,7 +21,7 @@ hatch run all:test
 To run using a particular Python version available in the hatch matrix:
 
 ```bash
-hatch run +py=3.11 all:test
+hatch run +py=3.12 all:test
 ```
 
 ## Test a release locally
@@ -36,6 +30,12 @@ Generate the distribution package archives.
 
 ```bash
 hatch build
+```
+
+Generate the docs.
+
+```bash
+hatch run docs:build
 ```
 
 Then create a new virtual environment, install the dependencies, and install from the local wheel.

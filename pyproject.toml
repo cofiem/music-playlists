@@ -61,9 +61,6 @@ local_scheme = "no-local-version"
 version-file = "_version.py"
 
 [tool.hatch.env]
-requires = [
-    "hatch-pip-compile"
-]
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -71,8 +68,6 @@ dependencies = [
   "pytest==8.4.2",
   "pytest-cov==7.0.0",
 ]
-type = "pip-compile"
-pip-compile-hashes = true
 
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
@@ -87,7 +82,7 @@ cov = [
 ]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.12", "3.13"]
+python = ["3.12", "3.13", "3.14"]
 
 [tool.hatch.envs.types]
 dependencies = [
@@ -101,6 +96,30 @@ dependencies = [
   "ruff==0.12.9",
 ]
 config-path = "none"
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "pdoc",
+    "codespell",
+    "interrogate",
+]
+[tool.hatch.envs.docs.scripts]
+build = """
+pdoc --docformat google \
+--edit-url music_playlists=https://github.com/cofiem/music-playlists/blob/main/src/music_playlists/ \
+--search \
+--show-source \
+--output-directory docs \
+./src/music_playlists
+"""
+
+lint-interrogate = "interrogate -vv --fail-under 90 src"
+lint-codespell = "codespell --quiet-level 0 --summary --check-filenames --write-changes --skip *.pyc,*.png src tests"
+lint = [
+    "lint-interrogate",
+    "lint-codespell",
+]
+
 
 [tool.coverage.run]
 source_pkgs = ["music_playlists", "tests"]
