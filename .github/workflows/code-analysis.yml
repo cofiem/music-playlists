@@ -23,7 +23,7 @@ jobs:
             version: ""
           - language: python
             build-mode: none
-            version: "3.13"
+            version: "3.14"
 
     steps:
       - name: Checkout repository
