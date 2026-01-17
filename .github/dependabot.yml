@@ -13,6 +13,8 @@ updates:
       interval: "weekly"
     target-branch: "main"
     open-pull-requests-limit: 3
+    cooldown:
+      default-days: 5
 
   # Maintain dependencies for pip packages
   - package-ecosystem: "pip"
@@ -24,3 +26,5 @@ updates:
       prefix: "pip stable"
       prefix-development: "pip dev"
     open-pull-requests-limit: 3
+    cooldown:
+      default-days: 5
