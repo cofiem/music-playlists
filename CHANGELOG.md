@@ -1,5 +1,11 @@
 # Change log
 
+## [v0.3.1](https://github.com/cofiem/music-playlists/releases/tag/v0.3.1)
+
+Released 2026-01-17
+
+- add new youtube-music track props
+
 ## [v0.3.0](https://github.com/cofiem/music-playlists/releases/tag/v0.3.0)
 
 Released 2026-01-17
