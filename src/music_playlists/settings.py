@@ -68,7 +68,7 @@ class Settings:
 
         try:
             auth = self._get_setting(*[*p, "browser"])
-            logger.warning("Using OAuth for YouTube Music.")
+            logger.warning("Using Browser creds for YouTube Music.")
             return auth
         except ValueError:
             pass

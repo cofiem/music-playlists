@@ -77,6 +77,8 @@ class Track:
     resultType: str | None = None
     videoType: str | None = None
     inLibrary: bool | None = None
+    listenAgainFeedbackTokens: str | None = None
+    pinnedToListenAgain: str | None = None
 
 
 @beartype
