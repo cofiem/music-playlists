@@ -258,19 +258,21 @@ class Manage(model.Service):
                 logger.error("Could not remove playlist item: ", str(e))
                 return False
 
-        try:
-            result = self._client.api.add_playlist_items(
-                info.playlist_id,
-                [t.raw.videoId for t in new_tracks],
-                source_playlist=None,
-                duplicates=False,
-            )
-            if "status" not in result or result.get("status") != "STATUS_SUCCEEDED":
+        if new_tracks:
+            try:
+                result = self._client.api.add_playlist_items(
+                    info.playlist_id,
+                    [t.raw.videoId for t in new_tracks],
+                    source_playlist=None,
+                    duplicates=False,
+                )
+                if "status" not in result or result.get("status") != "STATUS_SUCCEEDED":
+                    return False
+            except YTMusicServerError as e:
+                logger.error("Could not add playlist item: ", str(e))
                 return False
-            return True
-        except YTMusicServerError as e:
-            logger.error("Could not add playlist item: ", str(e))
-            return False
+
+        return True
 
     def update_playlist_details(self, info: inter.ServicePlaylistInfo) -> bool:
         logger.info("Update YouTube Music playlist details for %s.", info.playlist_id)
