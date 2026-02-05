@@ -1,4 +1,4 @@
-FROM python:3.12@sha256:2b075cba87fcf51f14e6be18f83f209fb2013d72362ec874aed7d01933253e8b
+FROM python:3.12@sha256:b592cb353640680ce17a3013a6a403166ab8f2d59f23995ff0e84ffe1947bca9
 
 RUN python -m pip install hatch
 
