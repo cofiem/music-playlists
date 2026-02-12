@@ -29,7 +29,7 @@ classifiers = [
 ]
 dependencies = [
   "click==8.3.1",
-  "ytmusicapi==1.11.4",
+  "ytmusicapi==1.11.5",
   "requests==2.32.5",
   "tzdata==2025.3",
   "lxml==6.0.2",
