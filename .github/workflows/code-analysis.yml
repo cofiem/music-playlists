@@ -11,7 +11,7 @@ on:
 jobs:
   analyze:
     name: Analyze ${{ matrix.language }} - ${{ matrix.version }}
-    runs-on: 'ubuntu-latest'
+    runs-on: ubuntu-24.04
     permissions:
       security-events: write
     strategy:
@@ -32,14 +32,14 @@ jobs:
           persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@cdefb33c0f6224e58673d9004f47f7cb3e328b89 # v4.31.10
+        uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
       - if: matrix.language == 'python'
         name: Set up Python ${{ matrix.version }}
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.version }}
           cache: pip
@@ -59,6 +59,6 @@ jobs:
           inputs: '.'
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@cdefb33c0f6224e58673d9004f47f7cb3e328b89 # v4.31.10
+        uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
         with:
           category: "/language:${{matrix.language}}"

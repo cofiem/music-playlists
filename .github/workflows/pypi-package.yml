@@ -15,7 +15,7 @@ on:
 jobs:
   build-package:
     name: Build package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       attestations: write
       id-token: write
@@ -35,7 +35,7 @@ jobs:
   # Upload to Test PyPI on every commit on main.
   release-test-pypi:
     name: Upload release to test.pypi.org
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-package
     environment:
       name: release-test-pypi
@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-package
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: Packages
           path: dist
@@ -63,7 +63,7 @@ jobs:
   # Upload to real PyPI on GitHub Releases.
   release-pypi:
     name: Upload release to pypi.org
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build-package
     environment:
       name: release-pypi
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-package
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: Packages
           path: dist

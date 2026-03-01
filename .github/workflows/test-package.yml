@@ -23,7 +23,7 @@ permissions: {}
 jobs:
   build-package:
     name: Build package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -61,7 +61,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -75,7 +75,7 @@ jobs:
         run: hatch run cov
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: coverage-data-${{ matrix.os }}-${{ matrix.python-version }}
           path: .coverage*
@@ -84,7 +84,7 @@ jobs:
 
   coverage:
     name: Check test coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: tests
     if: always()
 
@@ -95,13 +95,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.13"
           cache: pip
 
       - name: Download coverage data
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           pattern: coverage-data-*
           merge-multiple: true
@@ -124,7 +124,7 @@ jobs:
           coverage report --fail-under=60
 
       - name: Upload HTML report if coverage under expected percentage
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: html-report
           path: htmlcov
@@ -132,7 +132,7 @@ jobs:
 
   lint:
     name: Run linters
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs:
       - build-package
       - tests
@@ -145,7 +145,7 @@ jobs:
 
     steps:
       - name: Download pre-built packages
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: Packages
           path: dist
@@ -154,7 +154,7 @@ jobs:
         run: tar xf dist/*.tar.gz --strip-components=1
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
