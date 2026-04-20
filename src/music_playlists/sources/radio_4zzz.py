@@ -148,7 +148,7 @@ class Manage(model.Source):
         self._tz = time_zone
         self._url = "https://airnet.org.au/rest/stations/4ZZZ/programs"
 
-    def active_program_tracks(self, title: str, refresh=False) -> inter.TrackList:
+    def active_program_tracks(self, title: str) -> inter.TrackList:
         logger.info("Get %s.", title)
 
         current_time = datetime.now(tz=self._tz)
@@ -157,21 +157,21 @@ class Manage(model.Source):
 
         results = []
 
-        for ps in self.programs(refresh=refresh):
+        for ps in self.programs():
             if ps.archived is not False:
                 continue
-            p = self.program(ps, refresh=refresh)
+            p = self.program(ps)
             if not p:
                 continue
-            for es in self.episodes(p, refresh=refresh):
+            for es in self.episodes(p):
                 # must be fully inside the 'from date' -> 'to date'
                 episode_start = self._episode_date(es.start)
                 episode_end = self._episode_date(es.end)
                 if episode_start < date_from or episode_end > date_to:
                     continue
 
-                e = self.episode(es, refresh=refresh)
-                for t in self.playlist(e, refresh=refresh):
+                e = self.episode(es)
+                for t in self.playlist(e):
                     results.append(
                         inter.Track(
                             origin_code=self.code,
@@ -189,41 +189,41 @@ class Manage(model.Source):
         )
         return tl
 
-    def programs(self, refresh=False) -> list[ProgramSummary]:
-        r = self._dl.get_session.get(self._url, refresh=refresh)
+    def programs(self) -> list[ProgramSummary]:
+        r = self._dl.get(self._url)
         self._check_response(r)
         return utils.c.structure(r.json(), list[ProgramSummary])
 
-    def program(self, program_summary: ProgramSummary, refresh=False) -> Program | None:
+    def program(self, program_summary: ProgramSummary) -> Program | None:
         if not program_summary:
             raise ValueError
         if program_summary.programRestUrl.strip("/") == self._url:
             return None
-        r = self._dl.get_session.get(program_summary.programRestUrl, refresh=refresh)
+        r = self._dl.get(program_summary.programRestUrl)
         self._check_response(r)
         return utils.c.structure(r.json(), Program)
 
-    def episodes(self, program: Program, refresh=False) -> list[EpisodeSummary]:
+    def episodes(self, program: Program) -> list[EpisodeSummary]:
         if not program:
             raise ValueError
 
-        r = self._dl.get_session.get(program.episodesRestUrl, refresh=refresh)
+        r = self._dl.get(program.episodesRestUrl)
         self._check_response(r)
         return utils.c.structure(r.json(), list[EpisodeSummary])
 
-    def episode(self, episode_summary: EpisodeSummary, refresh=False) -> Episode:
+    def episode(self, episode_summary: EpisodeSummary) -> Episode:
         if not episode_summary:
             raise ValueError
 
-        r = self._dl.get_session.get(episode_summary.episodeRestUrl, refresh=refresh)
+        r = self._dl.get(episode_summary.episodeRestUrl)
         self._check_response(r)
         return utils.c.structure(r.json(), Episode)
 
-    def playlist(self, episode: Episode, refresh=False) -> list[Track]:
+    def playlist(self, episode: Episode) -> list[Track]:
         if not episode:
             raise ValueError
 
-        r = self._dl.get_session.get(episode.playlistRestUrl, refresh=refresh)
+        r = self._dl.get(episode.playlistRestUrl)
         self._check_response(r)
         return utils.c.structure(r.json(), list[Track])
 

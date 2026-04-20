@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 @beartype
 class Process:
-    def __init__(self, config_file: pathlib.Path):
+    def __init__(self, config_file: pathlib.Path, refresh: bool = False):
         # common
         self._settings = settings.Settings(config_file)
         s = self._settings
@@ -36,7 +36,7 @@ class Process:
         tz = self._time_zone
 
         self._base_path = pathlib.Path(s.base_path).resolve() if s.base_path else None
-        self._downloader = utils.Downloader(store_path=self._base_path)
+        self._downloader = utils.Downloader(store_path=self._base_path, expire_days=7, refresh=refresh, force_refresh=refresh)
         d = self._downloader
 
         # sources
@@ -89,7 +89,7 @@ class Process:
         )
         return result
 
-    def source_show(self, name: str, refresh: bool = False):
+    def source_show(self, name: str):
         for item in self._sources:
             available = item.available() or {}
             for code in available.keys():
@@ -99,7 +99,7 @@ class Process:
                 for pc in self._playlists_config:
                     if pc.code == code and pc.source == item.code:
                         func = available[code]
-                        tracks = func(item, pc.title, refresh)
+                        tracks = func(item, pc.title)
                         if tracks.type == TrackListType.ALL_PLAYS:
                             tracks = self._intermediate.most_played(tracks)
                         return tracks
@@ -109,8 +109,7 @@ class Process:
         self,
         code_name: str | None = None,
         source_name: str | None = None,
-        service_name: str | None = None,
-        refresh: bool = False,
+        service_name: str | None = None
     ):
         logger.info(
             "Updating music playlists with code %s, source %s, service %s.",
@@ -141,7 +140,7 @@ class Process:
                         continue
                     if pc.code == code and pc.source == source.code:
                         func = available[code]
-                        tracks = func(source, pc.title, refresh)
+                        tracks = func(source, pc.title)
                         if tracks.type == TrackListType.ALL_PLAYS:
                             tracks = self._intermediate.most_played(tracks)
                         self._intermediate.normalise_tracklist(tracks)

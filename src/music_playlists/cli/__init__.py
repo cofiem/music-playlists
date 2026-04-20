@@ -84,8 +84,8 @@ def sources():
 @click.option(*CONFIG_FILE_OPT["args"], **CONFIG_FILE_OPT["kwargs"])
 def show(config_file, code, refresh):
     """Show all the tracks from the music playlist with CODE."""
-    p = process.Process(pathlib.Path(config_file))
-    tl = p.source_show(code, refresh)
+    p = process.Process(pathlib.Path(config_file), refresh=refresh)
+    tl = p.source_show(code)
 
     # print track list as table
     track_count = len(tl.tracks)
@@ -168,8 +168,8 @@ def update(
     refresh: bool = False,
 ):
     """Update the songs in the playlists."""
-    p = process.Process(pathlib.Path(config_file))
-    p.services_update(code, source, service, refresh)
+    p = process.Process(pathlib.Path(config_file), refresh=refresh)
+    p.services_update(code, source, service)
 
 
 if __name__ == "__main__":
