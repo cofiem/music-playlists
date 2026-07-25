@@ -79,6 +79,8 @@ class Track:
     inLibrary: bool | None = None
     listenAgainFeedbackTokens: str | None = None
     pinnedToListenAgain: str | None = None
+    communityVoteStatus: str | None = None
+    creditsBrowseId: str | None = None
 
 
 @beartype
@@ -255,7 +257,7 @@ class Manage(model.Service):
                 if result != "STATUS_SUCCEEDED":
                     return False
             except ytmusicapi.exceptions.YTMusicServerError as e:
-                logger.error("Could not remove playlist item: ", str(e))
+                logger.error("Could not remove playlist item: %s", str(e))
                 return False
 
         if new_tracks:
