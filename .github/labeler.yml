@@ -7,7 +7,7 @@ dependencies:
   - changed-files:
       - any-glob-to-any-file:
           - pyproject.toml
-          - MANIFEST.in
+          - .github/**/*
 
 tests:
   - changed-files:
