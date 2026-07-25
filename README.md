@@ -4,7 +4,7 @@ Generates streaming music playlists create from various song charts.
 
 ## Playlists
 
-### Triple J Unearthed Weekly ([Source](https://www.triplejunearthed.com/discover/charts))
+### ABC Triple J Unearthed Weekly ([Source](https://www.abc.net.au/triplejunearthed/music))
 
 - [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflWEJroa8S-ICu4YNzVFQiVl)
 - [Generated Spotify Playlist](https://open.spotify.com/playlist/1Fi0e7Bwof3ZZYKiTqIFeG)
@@ -12,9 +12,9 @@ Generates streaming music playlists create from various song charts.
 Similar Playlists
 
 - [Similar YouTube Music Playlist](https://music.youtube.com/playlist?list=PLFqO_oqoHHMwqcf99e0zeht2Gm0eOmrQx)
-- [Similar Spotify Playlist by Triple J](https://open.spotify.com/playlist/78d1cKN9xYtKialnOYkI92)
+- [Similar Spotify Playlist by ABC Triple J](https://open.spotify.com/playlist/78d1cKN9xYtKialnOYkI92)
 
-### Triple J Most Played Daily ([Source](https://www.abc.net.au/triplej/featured-music/most-played/))
+### ABC Triple J Most Played Daily ([Source](https://www.abc.net.au/triplej/most-played))
 
 - [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflXb3R7YIKDtJf015kzwSocB)
 - [Generated Spotify Playlist](https://open.spotify.com/playlist/6fk0j4ncAVZgR0BGXgnoQP)
@@ -22,16 +22,24 @@ Similar Playlists
 Similar Playlists
 
 - [Similar YouTube Music Playlist](https://music.youtube.com/playlist?list=PLFqO_oqoHHMw8xPXfm2-SOrwXPEHSqoOf)
-- [Similar Spotify Playlist by Triple J](https://open.spotify.com/playlist/7vFQNWXoblEJXpbnTuyz76)
+- [Similar Spotify Playlist by ABC Triple J](https://open.spotify.com/playlist/7vFQNWXoblEJXpbnTuyz76)
 
-### Double J Most Played Daily ([Source](https://www.abc.net.au/doublej/featured-music/most-played/))
+### ABC Double J Most Played Daily ([Source](https://www.abc.net.au/listen/doublej/most-played))
 
 - [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLxYyVSBSlflUUImfAqq7Y5kxliC5MZz8C)
 - [Generated Spotify Playlist](https://open.spotify.com/playlist/5pMHkM6y47xeqKstXTxe5l)
 
 Similar Playlists
 
-- [Similar Spotify Playlist by Double J](https://open.spotify.com/playlist/3eVaP90RyWrOKu6Gejw5Eg)
+- [Similar Spotify Playlist by ABC Double J](https://open.spotify.com/playlist/3eVaP90RyWrOKu6Gejw5Eg)
+
+### ABC Jazz Most Played Daily ([Source](https://www.abc.net.au/listen/live/jazz))
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLK-zl6Dobl20)
+
+### ABC Classic Most Played Daily ([Source](https://www.abc.net.au/listen/live/classic?))
+
+- [Generated YouTube Music Playlist](https://music.youtube.com/playlist?list=PLe_28xws8qzE)
 
 ### Radio 4zzz Weekly ([Source](http://4zzz.org.au/))
 
@@ -53,4 +61,4 @@ Not available due to [Soundcloud closing access to API keys](https://github.com/
 ### Other playlists
 
 - [Guardian Australia Monthly New Music](https://www.theguardian.com/music/series/australias-best-new-music):
-  [Spotify](https://open.spotify.com/playlist/5Cw9qgG1EaqvJYYdhGC8JJ)
+  [Spotify - Australia's Best New Music](https://open.spotify.com/playlist/5Cw9qgG1EaqvJYYdhGC8JJ)

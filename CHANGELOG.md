@@ -1,5 +1,20 @@
 # Change log
 
+## [v0.4.0](https://github.com/cofiem/music-playlists/releases/tag/v0.4.0)
+
+Released ??
+
+- update api endpoints
+- remove renovate and dependabot in favour of checking for dependency updates manually
+- add ABC Jazz and Classic playlists
+
+## [v0.3.2](https://github.com/cofiem/music-playlists/releases/tag/v0.3.2)
+
+Released 2026-04-20
+
+- only try to add youtube tracks when there are new tracks
+- use new abc music api
+
 ## [v0.3.1](https://github.com/cofiem/music-playlists/releases/tag/v0.3.1)
 
 Released 2026-01-17
