@@ -2,7 +2,7 @@
 
 ## [v0.4.0](https://github.com/cofiem/music-playlists/releases/tag/v0.4.0)
 
-Released ??
+Released 2026-07-25
 
 - update api endpoints
 - remove renovate and dependabot in favour of checking for dependency updates manually
